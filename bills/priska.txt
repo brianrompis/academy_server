@@ -1,0 +1,5 @@
+Bill breakdown: 
+esse change:              ...$2.33 
+lighter:                  ...$0.25 
+tip:                      ...$0.50 
+total:                    ...$3.08

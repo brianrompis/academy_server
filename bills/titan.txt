@@ -1,0 +1,6 @@
+Bill breakdown: 
+boba:                     ...$4 
+greentea:                 ...$3.5 
+plastic bag:              ...$1.25 
+tip:                      ...$0.25 
+total:                    ...$9.00
