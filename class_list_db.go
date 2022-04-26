@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -20,14 +21,23 @@ type ClassDB struct {
 }
 
 type Schedule struct {
-	gorm.Model
-	name       string `json:"Name"`
-	start_date string `json:"StartDate"`
-	end_date   string `json:"EndDate"`
+	ID        string    `json:"ID"`
+	Name      string    `json:"Name"`
+	StartDate time.Time `json:"StartDate"`
+	EndDate   time.Time `json:"EndDate"`
+}
+
+type Tabler interface {
+	TableName() string
+}
+
+// TableName overrides the table name used by Schedule to `schedule`
+func (Schedule) TableName() string {
+	return "schedule"
 }
 
 func InitialMigration() {
-	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/classroom?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println(err.Error())
@@ -38,7 +48,7 @@ func InitialMigration() {
 }
 
 func allClassroomsDB(w http.ResponseWriter, r *http.Request) {
-	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/classroom?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("Could not connect to the database")
@@ -50,7 +60,7 @@ func allClassroomsDB(w http.ResponseWriter, r *http.Request) {
 }
 
 func postClassesDB(w http.ResponseWriter, r *http.Request) {
-	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/classroom?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("Could not connect to the database")
@@ -64,7 +74,7 @@ func postClassesDB(w http.ResponseWriter, r *http.Request) {
 }
 
 func allSchedule(w http.ResponseWriter, r *http.Request) {
-	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/classroom?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("Could not connect to the database")
@@ -76,21 +86,21 @@ func allSchedule(w http.ResponseWriter, r *http.Request) {
 }
 
 func addSchedule(w http.ResponseWriter, r *http.Request) {
-	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/classroom?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("Could not connect to the database")
 	}
 
 	format := "2006-01-02"
-	// startDate, _ := time.Parse(format, "2019-07-10")
-	// endDate, _ := time.Parse(format, "2019-07-11")
+	startDate, _ := time.Parse(format, "2019-07-10")
+	endDate, _ := time.Parse(format, "2019-07-11")
 
 	user := Schedule{
-		// id:         9,
-		name:       "1st Semester 2022",
-		start_date: format,
-		end_date:   format,
+		ID:        "14ldsjf8234",
+		Name:      "2st Semester 2022",
+		StartDate: startDate,
+		EndDate:   endDate,
 	}
 
 	db.Create(&user)

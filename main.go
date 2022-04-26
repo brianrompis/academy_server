@@ -46,7 +46,7 @@ func handleRequests() {
 }
 
 func main() {
-	InitialMigration()
+	//InitialMigration()
 
 	handleRequests()
 }
