@@ -38,15 +38,21 @@ func handleRequests() {
 
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/", homePage)
+
 	myRouter.HandleFunc("/classes", allClassroomsDB).Methods("GET")
 	myRouter.HandleFunc("/classes", postClassesDB).Methods("POST")
+
 	myRouter.HandleFunc("/schedule", allSchedule).Methods("GET")
+	myRouter.HandleFunc("/schedule/{id}", getSchedule).Methods("GET")
 	myRouter.HandleFunc("/schedule", addSchedule).Methods("POST")
+	myRouter.HandleFunc("/schedule/{id}", editSchedule).Methods("PUT")
+	myRouter.HandleFunc("/schedule/{id}", removeSchedule).Methods("DELETE")
+
 	log.Fatal(http.ListenAndServe(":8081", myRouter))
 }
 
 func main() {
-	//InitialMigration()
+	InitialMigration()
 
 	handleRequests()
 }

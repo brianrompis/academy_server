@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -85,23 +86,31 @@ func allSchedule(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(schedule)
 }
 
+func getSchedule(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var schedule Schedule
+	db.First(&schedule, "id = ?", params["id"])
+	json.NewEncoder(w).Encode(schedule)
+}
+
 func addSchedule(w http.ResponseWriter, r *http.Request) {
-	dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/classroom?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("Could not connect to the database")
-	}
 
-	format := "2006-01-02"
-	startDate, _ := time.Parse(format, "2019-07-10")
-	endDate, _ := time.Parse(format, "2019-07-11")
+	// format := "2006-01-02"
+	// startDate, _ := time.Parse(format, "2019-07-10")
+	// endDate, _ := time.Parse(format, "2019-07-11")
+	// string format for json: "2022-01-01T00:00:00+08:00"
 
-	user := Schedule{
-		ID:        "14ldsjf8234",
-		Name:      "2st Semester 2022",
-		StartDate: startDate,
-		EndDate:   endDate,
-	}
+	w.Header().Set("Content-Type", "application/json")
+	var schedule Schedule
+	json.NewDecoder(r.Body).Decode(&schedule)
+	db.Create(&schedule)
+}
 
-	db.Create(&user)
+func editSchedule(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Successfully edit a schedule")
+}
+
+func removeSchedule(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Successfully delete a schedule")
 }
