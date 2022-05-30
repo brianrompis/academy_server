@@ -4,18 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/classroom/v1"
-	"google.golang.org/api/option"
 )
 
 ///////////////////////////////////////
+// Main Function
 // Retrieve a token, saves the token, then returns the generated client.
 ///////////////////////////////////////
 func getClient(config *oauth2.Config) *http.Client {
@@ -76,52 +73,4 @@ func saveToken(path string, token *oauth2.Token) {
 	}
 	defer f.Close()
 	json.NewEncoder(f).Encode(token)
-}
-
-///////////////////////////////////////
-///////// The Main Function ///////////
-///////////////////////////////////////
-func showList() Classrooms {
-	ctx := context.Background()
-	b, err := ioutil.ReadFile("credentials.json")
-	if err != nil {
-		log.Fatalf("Unable to read credentials file: %v", err)
-	}
-
-	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, classroom.ClassroomCoursesReadonlyScope)
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-	client := getClient(config)
-
-	//Create a Classroom Client service
-	srv, err := classroom.NewService(ctx, option.WithHTTPClient(client))
-	if err != nil {
-		log.Fatalf("Unable to create classroom Client %v", err)
-	}
-
-	//displaying all classes
-	r, err := srv.Courses.List().PageSize(10).Do()
-	if err != nil {
-		log.Fatalf("Unable to retrieve courses. %v", err)
-	}
-	var classes Classrooms
-	if len(r.Courses) > 0 {
-		fmt.Print("Courses:\n")
-		for _, c := range r.Courses {
-			fmt.Printf("%s (%s)\n", c.Name, c.Id)
-			class := Classroom{
-				Id:                 c.Id,
-				Name:               c.Name,
-				Section:            c.Section,
-				DescriptionHeading: c.DescriptionHeading,
-				Description:        c.Description,
-			}
-			classes = append(classes, class)
-		}
-	} else {
-		fmt.Print("No courses found.")
-	}
-	return classes
 }
