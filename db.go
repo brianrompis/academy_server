@@ -28,4 +28,5 @@ func InitialMigration() {
 	db.AutoMigrate(&Student{})
 	db.AutoMigrate(&Teacher{})
 	db.AutoMigrate(&User{})
+	db.AutoMigrate(&EducationHistory{})
 }

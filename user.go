@@ -44,6 +44,10 @@ func addUser(w http.ResponseWriter, r *http.Request) {
 
 func getUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	if r.Method == "OPTIONS" {
+		w.Write([]byte("allowed"))
+		return
+	}
 	params := mux.Vars(r)
 	var user []User
 	db.First(&user, "id = ?", params["id"])

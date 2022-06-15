@@ -4,16 +4,37 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+
+	"crypto/subtle"
+	"crypto/sha256"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/handlers"
 )
+
+type application struct {
+	auth struct {
+			username string
+			password string
+	}
+}
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Homepage Endpoint Hit")
 }
 
 func handleRequests() {
+	app := new(application)
+
+	app.auth.username = os.Getenv("AUTH_USERNAME")
+	app.auth.password = os.Getenv("AUTH_PASSWORD")
+	if app.auth.username == "" {
+		log.Fatal("Basic auth username must be provided")
+	}
+	if app.auth.password == "" {
+		log.Fatal("Basic auth password must be provided")
+	}
 
 	myRouter := mux.NewRouter()
 	myRouter.HandleFunc("/", homePage)
@@ -69,16 +90,61 @@ func handleRequests() {
 	myRouter.HandleFunc("/user/{id}", editUser).Methods("PUT")
 	myRouter.HandleFunc("/user/{id}", removeUser).Methods("DELETE")
 
+	myRouter.HandleFunc("/education", allEducationHistory).Methods("GET")
+	myRouter.HandleFunc("/education", addEducationHistory).Methods("POST")
+	myRouter.HandleFunc("/education/{id}", getEducationHistory).Methods("GET")
+	myRouter.HandleFunc("/education/{id}", editEducationHistory).Methods("PUT")
+	myRouter.HandleFunc("/education/{id}", removeEducationHistory).Methods("DELETE")
+	myRouter.HandleFunc("/education/user/{user_id}", getUserEducationHistory).Methods("GET")
+	myRouter.HandleFunc("/education/user/{user_id}", removeUserEducationHistory).Methods("DELETE")
+
+	// apply middleware
+	var handler http.Handler = myRouter
+	handler = app.Auth(handler)
+
 	fmt.Println("handling request")
 	credentials := handlers.AllowCredentials()
-	methods := handlers.AllowedMethods([]string{"PUT","GET", "HEAD", "POST", "OPTIONS"})
+	methods := handlers.AllowedMethods([]string{"PUT","GET", "HEAD", "POST", "OPTIONS", "DELETE"})
+	headers := handlers.AllowedHeaders([]string{"Authorization"})
 	// ttl := handlers.MaxAge(3600)
 	origins := handlers.AllowedOrigins([]string{"http://localhost:8081"})
-	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(credentials, methods, origins)(myRouter)))
+	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(credentials, methods, origins, headers)(handler)))
 }
 
 func main() {
+
 	InitialMigration()
 	fmt.Println("initial migration finished, run handle request")
 	handleRequests()
+}
+
+
+func (app *application) Auth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+		username, password, ok := r.BasicAuth()
+		if ok {
+			usernameHash := sha256.Sum256([]byte(username))
+			passwordHash := sha256.Sum256([]byte(password))
+			fmt.Println(username)
+			fmt.Println(password)
+			expectedUsernameHash := sha256.Sum256([]byte(app.auth.username))
+			expectedPasswordHash := sha256.Sum256([]byte(app.auth.password))
+			usernameMatch := (subtle.ConstantTimeCompare(usernameHash[:], expectedUsernameHash[:]) == 1)
+			passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1)
+			if usernameMatch && passwordMatch {
+				fmt.Println("match")
+				next.ServeHTTP(w, r)
+			} else {
+				w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+				http.Error(w, "Wrong username/password", http.StatusUnauthorized)
+				return
+			}
+	
+			
+		} else {
+			w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+	})
 }
