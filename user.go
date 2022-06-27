@@ -24,6 +24,7 @@ type User struct {
 	TeacherStatus	string	`json:"TeacherStatus"`
 	IsTeacher  bool   `json:"IsTeacher"`
 	EmployeeID bool   `json:"EmployeeID"`
+	IDCardNumber string   `json:"IDCardNumber"`
 }
 
 func (User) TableName() string {

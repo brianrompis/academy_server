@@ -23,13 +23,23 @@ type Classroom struct {
 	Section            string `json:"Section"`
 	DescriptionHeading string `json:"DescriptionHeading"`
 	Description        string `json:"Description"`
+	AlternateLink      string `json:"AlternateLink"`
+	Topics             Topics `json:"Topics"`
 }
 
 type Classrooms []Classroom
 
+type Topic struct {
+	Id          string `json:"Id"`
+	Name        string `json:"Name"`
+	ClassroomID string `json:"ClassroomID"`
+}
+
+type Topics []Topic
+
 func allClassrooms(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	classes := showList()
+	classes := getList()
 
 	fmt.Println("Endpoint Hit: All Classes Endpoint")
 	json.NewEncoder(w).Encode(classes)
@@ -39,7 +49,7 @@ func createClassroom(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Test POST endpoint worked")
 }
 
-func showList() Classrooms {
+func getList() Classrooms {
 	ctx := context.Background()
 	b, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
@@ -47,19 +57,19 @@ func showList() Classrooms {
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, classroom.ClassroomCoursesReadonlyScope)
+	config, err := google.ConfigFromJSON(b, classroom.ClassroomCoursesReadonlyScope, classroom.ClassroomTopicsReadonlyScope)
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
 	client := getClient(config)
 
-	//Create a Classroom Client service
+	// Create a Classroom Client service
 	srv, err := classroom.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		log.Fatalf("Unable to create classroom Client %v", err)
 	}
 
-	//displaying all classes
+	// displaying all classes
 	r, err := srv.Courses.List().PageSize(150).Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve courses. %v", err)
@@ -75,13 +85,33 @@ func showList() Classrooms {
 				Section:            c.Section,
 				DescriptionHeading: c.DescriptionHeading,
 				Description:        c.Description,
+				AlternateLink:      c.AlternateLink,
+				Topics:             getTopicList(c, srv),
 			}
 			classes = append(classes, class)
+
 		}
 	} else {
 		fmt.Print("No courses found.")
 	}
 	return classes
+}
+
+func getTopicList(c *classroom.Course, srv *classroom.Service) Topics {
+	res, err2 := srv.Courses.Topics.List(c.Id).PageSize(30).Do()
+	if err2 != nil {
+		log.Fatalf("Unable to retrieve topics for classroom: %s", c.Name)
+	}
+	var topics Topics
+	for _, t := range res.Topic {
+		resTopic := Topic{
+			Id:          t.TopicId,
+			Name:        t.Name,
+			ClassroomID: t.CourseId,
+		}
+		topics = append(topics, resTopic)
+	}
+	return topics
 }
 
 func createClass() {

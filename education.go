@@ -5,18 +5,18 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"github.com/gorilla/mux"
+	"github.com/shopspring/decimal"
 )
 
 type EducationHistory struct {
-	ID	string	`json:"ID"`
-	UserID	string	`json:"UserID"`
-	EducationLevel string `json:"EducationLevel"`
-	SchoolName string	`json:"SchoolName"`
-	StartYear time.Time	`json:"StartYear"`
-	EndYear time.Time	`json:"EndYear"`
-	GPA	decimal.Decimal	`json:"GPA"`
+	ID             string          `json:"ID"`
+	UserID         string          `json:"UserID"`
+	EducationLevel string          `json:"EducationLevel"`
+	SchoolName     string          `json:"SchoolName"`
+	StartYear      time.Time       `json:"StartYear"`
+	EndYear        time.Time       `json:"EndYear"`
+	GPA            decimal.Decimal `json:"GPA"`
 }
 
 func (EducationHistory) TableName() string {
@@ -33,6 +33,7 @@ func addEducationHistory(w http.ResponseWriter, r *http.Request) {
 	var education []EducationHistory
 	json.NewDecoder(r.Body).Decode(&education)
 	db.Create(&education)
+	json.NewEncoder(w).Encode("Successfully add the education history.")
 }
 
 func getEducationHistory(w http.ResponseWriter, r *http.Request) {
@@ -75,5 +76,5 @@ func removeUserEducationHistory(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var education []EducationHistory
 	db.Where("user_id = ?", params["user_id"]).Delete(&education)
-	json.NewEncoder(w).Encode("The education histories for the entire user are deleted successfully!")
+	json.NewEncoder(w).Encode("The entire education histories for the user are deleted successfully!")
 }

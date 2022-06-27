@@ -71,6 +71,11 @@ func handleRequests() {
 	myRouter.HandleFunc("/employment_history/{id}", getEmploymentHistory).Methods("GET")
 	myRouter.HandleFunc("/employment_history/{id}", editEmploymentHistory).Methods("PUT")
 	myRouter.HandleFunc("/employment_history/{id}", removeEmploymentHistory).Methods("DELETE")
+	myRouter.HandleFunc("/employment_history/user/{user_id}", getUserEmploymentHistory).Methods("GET")
+	myRouter.HandleFunc("/employment_history/user/{user_id}", removeUserEmploymentHistory).Methods("DELETE")
+	myRouter.HandleFunc("/employment_history/delete", deleteMultipleEmploymentHistory).Methods("POST")
+	myRouter.HandleFunc("/employment_history/edit", editMultipleEmploymentHistory).Methods("PUT")
+
 
 	myRouter.HandleFunc("/student", allStudent).Methods("GET")
 	myRouter.HandleFunc("/student", addStudent).Methods("POST")
@@ -125,21 +130,17 @@ func (app *application) Auth(next http.Handler) http.Handler {
 		if ok {
 			usernameHash := sha256.Sum256([]byte(username))
 			passwordHash := sha256.Sum256([]byte(password))
-			fmt.Println(username)
-			fmt.Println(password)
 			expectedUsernameHash := sha256.Sum256([]byte(app.auth.username))
 			expectedPasswordHash := sha256.Sum256([]byte(app.auth.password))
 			usernameMatch := (subtle.ConstantTimeCompare(usernameHash[:], expectedUsernameHash[:]) == 1)
 			passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1)
 			if usernameMatch && passwordMatch {
-				fmt.Println("match")
 				next.ServeHTTP(w, r)
 			} else {
 				w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 				http.Error(w, "Wrong username/password", http.StatusUnauthorized)
 				return
 			}
-	
 			
 		} else {
 			w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
