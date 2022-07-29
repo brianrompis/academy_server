@@ -6,17 +6,17 @@ import (
 	"net/http"
 	"os"
 
-	"crypto/subtle"
 	"crypto/sha256"
+	"crypto/subtle"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
 
 type application struct {
 	auth struct {
-			username string
-			password string
+		username string
+		password string
 	}
 }
 
@@ -39,8 +39,12 @@ func handleRequests() {
 	myRouter := mux.NewRouter()
 	myRouter.HandleFunc("/", homePage)
 
-	myRouter.HandleFunc("/classroom", allClassrooms).Methods("GET")
-	//myRouter.HandleFunc("/classroom", createClass).Methods("POST")
+	// myRouter.HandleFunc("/classroom", allClassrooms).Methods("GET")
+	myRouter.HandleFunc("/classroom", createClass).Methods("POST")
+
+	myRouter.HandleFunc("/invitation", createInvitation).Methods("POST")
+
+	myRouter.HandleFunc("/sync", refreshData).Methods("GET")
 
 	myRouter.HandleFunc("/classes", allClassroomsDB).Methods("GET")
 	myRouter.HandleFunc("/classes", postClassesDB).Methods("POST")
@@ -76,7 +80,6 @@ func handleRequests() {
 	myRouter.HandleFunc("/employment_history/delete", deleteMultipleEmploymentHistory).Methods("POST")
 	myRouter.HandleFunc("/employment_history/edit", editMultipleEmploymentHistory).Methods("PUT")
 
-
 	myRouter.HandleFunc("/student", allStudent).Methods("GET")
 	myRouter.HandleFunc("/student", addStudent).Methods("POST")
 	myRouter.HandleFunc("/student/{id}", getStudent).Methods("GET")
@@ -109,10 +112,10 @@ func handleRequests() {
 
 	fmt.Println("handling request")
 	credentials := handlers.AllowCredentials()
-	methods := handlers.AllowedMethods([]string{"PUT","GET", "HEAD", "POST", "OPTIONS", "DELETE"})
+	methods := handlers.AllowedMethods([]string{"PUT", "GET", "HEAD", "POST", "OPTIONS", "DELETE"})
 	headers := handlers.AllowedHeaders([]string{"Authorization"})
 	// ttl := handlers.MaxAge(3600)
-	origins := handlers.AllowedOrigins([]string{"http://localhost:8081"})
+	origins := handlers.AllowedOrigins([]string{"http://localhost:8081", "http://localhost:8082"})
 	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(credentials, methods, origins, headers)(handler)))
 }
 
@@ -121,11 +124,11 @@ func main() {
 	InitialMigration()
 	fmt.Println("initial migration finished, run handle request")
 	handleRequests()
+
 }
 
-
 func (app *application) Auth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
 		if ok {
 			usernameHash := sha256.Sum256([]byte(username))
@@ -141,7 +144,7 @@ func (app *application) Auth(next http.Handler) http.Handler {
 				http.Error(w, "Wrong username/password", http.StatusUnauthorized)
 				return
 			}
-			
+
 		} else {
 			w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)

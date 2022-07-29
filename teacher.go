@@ -11,6 +11,7 @@ type Teacher struct {
 	ID          string `json:"ID"`
 	UserID      string `json:"UserID"`
 	ClassroomID string `json:"ClassroomID"`
+	CourseId    string `json:"CourseID"`
 }
 
 func (Teacher) TableName() string {

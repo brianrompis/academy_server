@@ -21,7 +21,8 @@ func InitialMigration() {
 	}
 
 	db.AutoMigrate(&Schedule{})
-	db.AutoMigrate(&ClassDB{})
+	db.AutoMigrate(&Classroom{})
+	db.AutoMigrate(&Topic{})
 	db.AutoMigrate(&Certificate{})
 	db.AutoMigrate(&Certification{})
 	db.AutoMigrate(&EmploymentHistory{})
@@ -29,4 +30,5 @@ func InitialMigration() {
 	db.AutoMigrate(&Teacher{})
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&EducationHistory{})
+	db.AutoMigrate(&Teacher{})
 }
