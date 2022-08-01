@@ -19,7 +19,7 @@ func InitialMigration() {
 			" user=" + os.Getenv("DATABASE_USER") +
 			" password=" + os.Getenv("DATABASE_PASSWORD") +
 			" dbname=" + os.Getenv("DATABASE_NAME") +
-			" port=5432 sslmode=enable TimeZone=Asia/Shanghai"
+			" port=5432 TimeZone=Asia/Shanghai"
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println(err.Error())
