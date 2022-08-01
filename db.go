@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -14,12 +13,7 @@ type Tabler interface {
 
 func InitialMigration() {
 	// dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/classroom?charset=utf8mb4&parseTime=True&loc=Local"
-	dsn :=
-		"host=" + os.Getenv("DATABASE_HOST") +
-			" user=" + os.Getenv("DATABASE_USER") +
-			" password=" + os.Getenv("DATABASE_PASSWORD") +
-			" dbname=" + os.Getenv("DATABASE_NAME") +
-			" port=5432 TimeZone=Asia/Shanghai"
+	dsn := "host=127.0.0.1 user=brian password=!Q@W#E$R1q2w3e4r dbname=classroom port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println(err.Error())
