@@ -39,7 +39,6 @@ func handleRequests() {
 	myRouter := mux.NewRouter()
 	myRouter.HandleFunc("/", homePage)
 
-	// myRouter.HandleFunc("/classroom", allClassrooms).Methods("GET")
 	myRouter.HandleFunc("/classroom", createClass).Methods("POST")
 
 	myRouter.HandleFunc("/invitation", createInvitation).Methods("POST")
@@ -58,17 +57,15 @@ func handleRequests() {
 	myRouter.HandleFunc("/schedule/{id}", editSchedule).Methods("PUT")
 	myRouter.HandleFunc("/schedule/{id}", removeSchedule).Methods("DELETE")
 
+	// list all certificate
 	myRouter.HandleFunc("/certificate", allCertificate).Methods("GET")
+
 	myRouter.HandleFunc("/certificate", addCertificate).Methods("POST")
 	myRouter.HandleFunc("/certificate/{id}", getCertificate).Methods("GET")
 	myRouter.HandleFunc("/certificate/{id}", editCertificate).Methods("PUT")
 	myRouter.HandleFunc("/certificate/{id}", removeCertificate).Methods("DELETE")
-
-	myRouter.HandleFunc("/certification", allCertification).Methods("GET")
-	myRouter.HandleFunc("/certification", addCertification).Methods("POST")
-	myRouter.HandleFunc("/certification/{id}", getCertification).Methods("GET")
-	myRouter.HandleFunc("/certification/{id}", editCertification).Methods("PUT")
-	myRouter.HandleFunc("/certification/{id}", removeCertification).Methods("DELETE")
+	myRouter.HandleFunc("/certificate/student/{student_id}", getStudentCertificates).Methods("GET")
+	myRouter.HandleFunc("/certificate/student/{student_id}", removeStudentCertificates).Methods("DELETE")
 
 	myRouter.HandleFunc("/employment_history", allEmploymentHistory).Methods("GET")
 	myRouter.HandleFunc("/employment_history", addEmploymentHistory).Methods("POST")
@@ -80,17 +77,8 @@ func handleRequests() {
 	myRouter.HandleFunc("/employment_history/delete", deleteMultipleEmploymentHistory).Methods("POST")
 	myRouter.HandleFunc("/employment_history/edit", editMultipleEmploymentHistory).Methods("PUT")
 
-	myRouter.HandleFunc("/student", allStudent).Methods("GET")
-	myRouter.HandleFunc("/student", addStudent).Methods("POST")
-	myRouter.HandleFunc("/student/{id}", getStudent).Methods("GET")
-	myRouter.HandleFunc("/student/{id}", editStudent).Methods("PUT")
-	myRouter.HandleFunc("/student/{id}", removeStudent).Methods("DELETE")
-
 	myRouter.HandleFunc("/teacher", allTeacher).Methods("GET")
 	myRouter.HandleFunc("/teacher", addTeacher).Methods("POST")
-	myRouter.HandleFunc("/teacher/{id}", getTeacher).Methods("GET")
-	myRouter.HandleFunc("/teacher/{id}", editTeacher).Methods("PUT")
-	myRouter.HandleFunc("/teacher/{id}", removeTeacher).Methods("DELETE")
 
 	myRouter.HandleFunc("/user", allUser).Methods("GET")
 	myRouter.HandleFunc("/user", addUser).Methods("POST")
@@ -106,6 +94,15 @@ func handleRequests() {
 	myRouter.HandleFunc("/education/user/{user_id}", getUserEducationHistory).Methods("GET")
 	myRouter.HandleFunc("/education/user/{user_id}", removeUserEducationHistory).Methods("DELETE")
 
+	// get all active class
+	myRouter.HandleFunc("/active_class", allActiveClassroom).Methods("GET")
+	// get all student from a class
+	myRouter.HandleFunc("/student/{class_id}", classroomStudent).Methods("GET")
+	// get all classroom from a teacher
+	myRouter.HandleFunc("/teacher/class/{teacher_id}", getTeacherClass).Methods("GET")
+	// user's qualification
+	myRouter.HandleFunc("/student/qualification/{user_id}", getStudentQualification).Methods("GET")
+
 	// apply middleware
 	var handler http.Handler = myRouter
 	handler = app.Auth(handler)
@@ -115,8 +112,8 @@ func handleRequests() {
 	methods := handlers.AllowedMethods([]string{"PUT", "GET", "HEAD", "POST", "OPTIONS", "DELETE"})
 	headers := handlers.AllowedHeaders([]string{"Authorization"})
 	// ttl := handlers.MaxAge(3600)
-	origins := handlers.AllowedOrigins([]string{"http://localhost:8081", "http://localhost:8082"})
-	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(credentials, methods, origins, headers)(handler)))
+	origins := handlers.AllowedOrigins([]string{"http://localhost:8081", "http://localhost:8082", "http://localhost:8080"})
+	log.Fatal(http.ListenAndServe(":8088", handlers.CORS(credentials, methods, origins, headers)(handler)))
 }
 
 func main() {

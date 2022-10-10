@@ -9,26 +9,40 @@ import (
 )
 
 type User struct {
-	ID         string `json:"ID"`
-	FirstName       string `json:"FirstName"`
-	LastName       string `json:"LastName"`
-	Email      string `json:"Email"`
-	Phone      string `json:"Phone"`
-	Birth      time.Time `json:"Birth"`
-	Gender      string `json:"Gender"`
-	Address    string `json:"Address"`
-	City    string `json:"City"`
-	Nationality    string `json:"Nationality"`
-	VerificationStatus string   `json:"VerificationStatus"`
-	Verified   bool   `json:"Verified"`
-	TeacherStatus	string	`json:"TeacherStatus"`
-	IsTeacher  bool   `json:"IsTeacher"`
-	EmployeeID bool   `json:"EmployeeID"`
-	IDCardNumber string   `json:"IDCardNumber"`
+	ID                 string    `json:"ID"`
+	FullName           string    `json:"FullName"`
+	NickName           string    `json:"NickName"`
+	Email              string    `json:"Email"`
+	Phone              string    `json:"Phone"`
+	Birth              time.Time `json:"Birth"`
+	Gender             string    `json:"Gender"`
+	Address            string    `json:"Address"`
+	City               string    `json:"City"`
+	Country            string    `json:"Country"`
+	Nationality        string    `json:"Nationality"`
+	VerificationStatus string    `json:"VerificationStatus"`
+	IsVerified         bool      `json:"IsVerified"`
+	TeacherStatus      string    `json:"TeacherStatus"`
+	IsTeacher          bool      `json:"IsTeacher"`
+	EmployeeID         string    `json:"EmployeeID"`
+	IDCardNumber       string    `json:"IDCardNumber"`
+	IsHRManager        bool      `json:"IsHRManager" gorm:"column:is_hr_manager"`
+	IsBanned           bool      `json:"IsBanned"`
+	TeacherClassroom   []TeacherClassroom
+	Classroom          []Classroom `gorm:"foreignKey:CreatedBy"`
+	StudentClassroom   []StudentClassroom
+	UserVote           []UserVote
+	SuggestedClassroom []SuggestedClassroom `gorm:"foreignKey:UserSuggestedID"`
+	JobVacancy         []JobVacancy         `gorm:"foreignKey:CreatedBy"`
+	UserApplication    []UserApplication
+	EmploymentHistory  []EmploymentHistory
+	EducationHistory   []EducationHistory
+	Skill              []Skill
+	OpenCandidate      []OpenCandidate
 }
 
 func (User) TableName() string {
-	return "users"
+	return "user"
 }
 
 func allUser(w http.ResponseWriter, r *http.Request) {

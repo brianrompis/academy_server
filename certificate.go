@@ -3,17 +3,14 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 )
 
 type Certificate struct {
-	ID          string    `json:"ID"`
-	Name        string    `json:"Name"`
-	IssuedDate  time.Time `json:"IssuedDate"`
-	ExpiredDate time.Time `json:"ExpiredDate"`
-	ClassroomId string    `json:"ClassroomId"`
+	ID          string `json:"ID"`
+	Template    string `json:"Template"`
+	ClassroomID string `json:"ClassroomID"`
 }
 
 func (Certificate) TableName() string {
@@ -57,4 +54,20 @@ func removeCertificate(w http.ResponseWriter, r *http.Request) {
 	db.First(&certificate, "id = ?", params["id"])
 	db.Delete(&certificate)
 	json.NewEncoder(w).Encode("The certificate is deleted successfully!")
+}
+
+func getStudentCertificates(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var certificates []Certificate
+	db.Where("student_id = ?", params["student_id"]).Find(&certificates)
+	json.NewEncoder(w).Encode(certificates)
+}
+
+func removeStudentCertificates(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var certificates []Certificate
+	db.Where("student_id = ?", params["student_id"]).Delete(&certificates)
+	json.NewEncoder(w).Encode("The entire certificates for the student are deleted successfully!")
 }

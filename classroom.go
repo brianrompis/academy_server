@@ -23,40 +23,91 @@ import (
 type NewClass struct {
 	ID           string `json:"ID"`
 	Name         string `json:"Name"`
-	DepartmentID string `json:"DepartmentID"`
+	DepartmentId string `json:"DepartmentId"`
 	CreatedBy    string `json:"CreatedBy"`
 }
 
 // data stored to DB
 type Classroom struct {
-	ID                 string          `json:"ID"`
-	Name               string          `json:"Name" gorm:"column:name"`
-	DepartmentID       string          `json:"DepartmentID" gorm:"column:department_id"`
-	GoogleClassroomId  string          `json:"GoogleClassroomId" gorm:"column:google_classroom_id"`
-	Link               string          `json:"Link" gorm:"column:link"`
-	Status             string          `json:"Status" gorm:"column:status"`
-	Public             bool            `json:"Public" gorm:"column:public"`
-	PassingGrade       decimal.Decimal `json:"PassingGrade" gorm:"column:passing_grade"`
-	Capacity           int             `json:"Capacity" gorm:"column:capacity"`
-	ClassStart         time.Time       `json:"ClassStart" gorm:"column:class_start"`
-	ClassEnd           time.Time       `json:"ClassEnd" gorm:"column:class_end"`
-	RegistrationStart  time.Time       `json:"RegistrationStart" gorm:"column:registration_start"`
-	RegistrationEnd    time.Time       `json:"RegistrationEnd" gorm:"column:registration_end"`
-	CreatedBy          string          `json:"CreatedBy" gorm:"column:created_by"`
-	Section            string          `json:"Section"`
-	DescriptionHeading string          `json:"DescriptionHeading"`
-	Description        string          `json:"Description"`
+	ID                     string          `json:"ID" gorm:"column:id"`
+	Name                   string          `json:"Name" gorm:"column:name"`
+	GoogleClassroomId      string          `json:"GoogleClassroomId" gorm:"column:google_classroom_id"`
+	Link                   string          `json:"Link" gorm:"column:link"`
+	Status                 string          `json:"Status" gorm:"column:status"`
+	IsPublic               bool            `json:"IsPublic" gorm:"column:is_public"`
+	PassingGrade           decimal.Decimal `json:"PassingGrade" gorm:"column:passing_grade"`
+	Capacity               int             `json:"Capacity" gorm:"column:capacity"`
+	CreatedBy              string          `json:"CreatedBy" gorm:"column:created_by"`
+	Section                string          `json:"Section" gorm:"column:section"`
+	DescriptionHeading     string          `json:"DescriptionHeading" gorm:"column:description_heading"`
+	Description            string          `json:"Description" gorm:"column:description"`
+	CertificateTemplateID  string          `json:"CertificateTemplateID" gorm:"column:certificate_template_id"`
+	DepartmentId           string          `json:"DepartmentId" gorm:"column:department_id"`
+	ActivePeriodID         string          `json:"ActivePeriodID" gorm:"column:active_period_id"`
+	Topic                  []Topic
+	ClassroomPeriod        []ClassroomPeriod
+	Assignment             []Assignment
+	UserVote               []UserVote
+	TeacherClassroom       []TeacherClassroom
+	QualificationClassroom []QualificationClassroom
 }
 
 func (Classroom) TableName() string {
 	return "classroom"
 }
 
+type Department struct {
+	ID        string `json:"ID" gorm:"column:id"`
+	Name      string `json:"Name" gorm:"column:name"`
+	Classroom []Classroom
+}
+
+func (Department) TableName() string {
+	return "department"
+}
+
+type ClassroomPeriod struct {
+	ID                 string    `json:"ID"`
+	ClassroomID        string    `json:"ClassroomID"`
+	StartDate          time.Time `json:"StartDate"`
+	EndDate            time.Time `json:"EndDate"`
+	CertExpiredDate    time.Time `json:"CertExpiredDate"`
+	RegistrationPeriod []RegistrationPeriod
+	StudentClassroom   []StudentClassroom
+	Classroom          Classroom `gorm:"foreignKey:ActivePeriodID"`
+}
+
+func (ClassroomPeriod) TableName() string {
+	return "classroom_period"
+}
+
+type RegistrationPeriod struct {
+	ID                string    `json:"ID"`
+	ClassroomPeriodID string    `json:"ClassroomPeriodID"`
+	StartDate         time.Time `json:"StartDate"`
+	EndDate           time.Time `json:"EndDate"`
+}
+
+func (RegistrationPeriod) TableName() string {
+	return "registration_period"
+}
+
+type Assignment struct {
+	ID                 string    `json:"ID"`
+	ClassroomID        string    `json:"ClassroomID"`
+	GoogleCourseworkID time.Time `json:"GoogleCourseworkID"`
+	StudentSubmission  []StudentSubmission
+}
+
+func (Assignment) TableName() string {
+	return "assignment"
+}
+
 // data from server(here) to display to front end
 type Course struct {
 	Id                 string           `json:"Id"`
 	Name               string           `json:"Name"`
-	DepartmentID       string           `json:"DepartmentID"`
+	DepartmentId       string           `json:"DepartmentId"`
 	GoogleClassroomId  string           `json:"GoogleClassroomId"`
 	AlternateLink      string           `json:"AlternateLink"`
 	Status             string           `json:"Status"`
@@ -76,11 +127,14 @@ type Course struct {
 type Courses []Course
 
 type Topic struct {
-	Id          string `json:"Id"`
-	Name        string `json:"Name"`
-	TopicID     string `json:"TopicID"`
-	ClassroomID string `json:"ClassroomID"`
-	CourseID    string `json:"CourseID"`
+	Id            string `json:"Id"`
+	Name          string `json:"Name"`
+	GoogleTopicID string `json:"GoogleTopicID"`
+	ClassroomID   string `json:"ClassroomID"`
+}
+
+func (Topic) TableName() string {
+	return "topic"
 }
 
 type Topics []Topic
@@ -181,19 +235,19 @@ func refreshData(w http.ResponseWriter, r *http.Request) {
 	var courses Courses
 	for _, c := range classroom {
 		resCourse := Course{
-			Id:                 c.ID,
-			Name:               c.Name,
-			DepartmentID:       c.DepartmentID,
-			GoogleClassroomId:  c.GoogleClassroomId,
-			AlternateLink:      c.Link,
-			Status:             c.Status,
-			Public:             c.Public,
-			PassingGrade:       c.PassingGrade,
-			Capacity:           c.Capacity,
-			ClassStart:         c.ClassStart,
-			ClassEnd:           c.ClassEnd,
-			RegistrationStart:  c.RegistrationStart,
-			RegistrationEnd:    c.RegistrationEnd,
+			Id:                c.ID,
+			Name:              c.Name,
+			DepartmentId:      c.DepartmentId,
+			GoogleClassroomId: c.GoogleClassroomId,
+			AlternateLink:     c.Link,
+			Status:            c.Status,
+			Public:            c.IsPublic,
+			PassingGrade:      c.PassingGrade,
+			Capacity:          c.Capacity,
+			// ClassStart:         c.ClassStart,
+			// ClassEnd:           c.ClassEnd,
+			// RegistrationStart:  c.RegistrationStart,
+			// RegistrationEnd:    c.RegistrationEnd,
 			Section:            c.Section,
 			DescriptionHeading: c.DescriptionHeading,
 			Description:        c.Description,
@@ -271,11 +325,10 @@ func getTopicList(classroomID string, courseId string, courseName string, srv *c
 	for _, t := range res.Topic {
 		topicUniqueID := uuid.New()
 		resTopic := Topic{
-			Id:          topicUniqueID.String(),
-			TopicID:     t.TopicId,
-			Name:        t.Name,
-			ClassroomID: classroomID,
-			CourseID:    t.CourseId,
+			Id:            topicUniqueID.String(),
+			GoogleTopicID: t.TopicId,
+			Name:          t.Name,
+			ClassroomID:   classroomID,
 		}
 		topics = append(topics, resTopic)
 	}
@@ -300,7 +353,7 @@ func syncTopics(classroomID string, courseId string, courseName string, srv *cla
 		//map topic in DB
 		var mappedTopic = map[string]Topic{}
 		for _, t := range topicsDB {
-			mappedTopic[t.TopicID] = t
+			mappedTopic[t.GoogleTopicID] = t
 		}
 
 		//update topic in DB according to Classroom
@@ -318,11 +371,10 @@ func syncTopics(classroomID string, courseId string, courseName string, srv *cla
 				// add new topic to database
 				fmt.Printf("Add new topic %s\n", t.Name)
 				newTopic := Topic{
-					Id:          uuid.New().String(),
-					Name:        t.Name,
-					TopicID:     t.TopicId,
-					ClassroomID: classroomID,
-					CourseID:    courseId,
+					Id:            uuid.New().String(),
+					Name:          t.Name,
+					GoogleTopicID: t.TopicId,
+					ClassroomID:   classroomID,
 				}
 				db.Create(&newTopic)
 			}
@@ -363,11 +415,10 @@ func getSpecificTopic(topicID string, classroomID string, c *classroom.Course, s
 	}
 	topicUniqueID := uuid.New()
 	resTopic := Topic{
-		Id:          topicUniqueID.String(),
-		TopicID:     res.TopicId,
-		Name:        res.Name,
-		ClassroomID: classroomID,
-		CourseID:    res.CourseId,
+		Id:            topicUniqueID.String(),
+		GoogleTopicID: res.TopicId,
+		Name:          res.Name,
+		ClassroomID:   classroomID,
 	}
 	return resTopic
 }
@@ -403,23 +454,19 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 		sendTeacherInvitation(course.Id, "brian.rompis@gmail.com", srv)
 
 		// save to Database
-		initTime := time.Now()
+		// initTime := time.Now()
 		defaultGrade := decimal.NewFromInt(0)
 		defaultCapacity := 500
 		var classroom = Classroom{
 			ID:                 c.ID,
 			Name:               c.Name,
-			DepartmentID:       c.DepartmentID,
+			DepartmentId:       c.DepartmentId,
 			GoogleClassroomId:  course.Id,
 			Link:               course.AlternateLink,
 			Status:             "REVIEWED",
-			Public:             false,
+			IsPublic:           false,
 			PassingGrade:       defaultGrade,
 			Capacity:           defaultCapacity,
-			ClassStart:         initTime,
-			ClassEnd:           initTime,
-			RegistrationStart:  initTime,
-			RegistrationEnd:    initTime,
 			CreatedBy:          c.CreatedBy,
 			Section:            "",
 			DescriptionHeading: "",
@@ -475,25 +522,26 @@ func sendInvitation(id string, user string, role string, srv *classroom.Service)
 ///////////////////////////////////////////////////
 
 func allClassroomsDB(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var classroom []Classroom
 	db.Find(&classroom)
 
 	var courses Courses
 	for _, c := range classroom {
 		resCourse := Course{
-			Id:                 c.ID,
-			Name:               c.Name,
-			DepartmentID:       c.DepartmentID,
-			GoogleClassroomId:  c.GoogleClassroomId,
-			AlternateLink:      c.Link,
-			Status:             c.Status,
-			Public:             c.Public,
-			PassingGrade:       c.PassingGrade,
-			Capacity:           c.Capacity,
-			ClassStart:         c.ClassStart,
-			ClassEnd:           c.ClassEnd,
-			RegistrationStart:  c.RegistrationStart,
-			RegistrationEnd:    c.RegistrationEnd,
+			Id:                c.ID,
+			Name:              c.Name,
+			DepartmentId:      c.DepartmentId,
+			GoogleClassroomId: c.GoogleClassroomId,
+			AlternateLink:     c.Link,
+			Status:            c.Status,
+			Public:            c.IsPublic,
+			PassingGrade:      c.PassingGrade,
+			Capacity:          c.Capacity,
+			// ClassStart:         c.ClassStart,
+			// ClassEnd:           c.ClassEnd,
+			// RegistrationStart:  c.RegistrationStart,
+			// RegistrationEnd:    c.RegistrationEnd,
 			Section:            c.Section,
 			DescriptionHeading: c.DescriptionHeading,
 			Description:        c.Description,
@@ -502,6 +550,42 @@ func allClassroomsDB(w http.ResponseWriter, r *http.Request) {
 		courses = append(courses, resCourse)
 	}
 	json.NewEncoder(w).Encode(&courses)
+}
+
+type AvailableClassroom struct {
+	ID                    string          `json:"ID"`
+	Name                  string          `json:"Name"`
+	GoogleClassroomId     string          `json:"GoogleClassroomId"`
+	Link                  string          `json:"Link"`
+	Status                string          `json:"Status"`
+	IsPublic              bool            `json:"IsPublic"`
+	PassingGrade          decimal.Decimal `json:"PassingGrade"`
+	Capacity              int             `json:"Capacity"`
+	CreatedBy             string          `json:"CreatedBy"`
+	Section               string          `json:"Section"`
+	DescriptionHeading    string          `json:"DescriptionHeading"`
+	Description           string          `json:"Description"`
+	CertificateTemplateID string          `json:"CertificateTemplateID"`
+	DepartmentId          string          `json:"DepartmentId"`
+	ActivePeriodID        string          `json:"ActivePeriodID"`
+	StartDate             time.Time       `json:"StartDate"`
+	EndDate               time.Time       `json:"EndDate"`
+	RegistrationStart     time.Time       `json:"RegistrationStart"`
+	RegistrationEnd       time.Time       `json:"RegistrationEnd"`
+}
+
+// get all active classroom
+func allActiveClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var availableClassroom []AvailableClassroom
+	db.Raw(`select "classroom".*, "classroom_period".start_date, "classroom_period".end_date, "registration_period".start_date  as "registration_start", "registration_period".end_date as "registration_end"
+	from "classroom_period"
+	inner join "classroom" on "classroom_period".classroom_id = "classroom".id 
+	inner join "registration_period" on "classroom_period".id = "registration_period".classroom_period_id  
+	where current_date between "classroom_period".start_date and "classroom_period".end_date
+	order by "classroom_period".start_date`).Scan(&availableClassroom)
+
+	json.NewEncoder(w).Encode(availableClassroom)
 }
 
 func postClassesDB(w http.ResponseWriter, r *http.Request) {
