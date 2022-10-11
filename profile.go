@@ -198,17 +198,11 @@ type Skill struct {
 	UserID      string `json:"UserID"`
 	Name        string `json:"Name"`
 	Description string `json:"Description"`
-	Level       int    `json:"StartYear"`
+	Level       int    `json:"Level"`
 }
 
 func (Skill) TableName() string {
 	return "skill"
-}
-
-func allSkill(w http.ResponseWriter, r *http.Request) {
-	var skill []Skill
-	db.Find(&skill)
-	json.NewEncoder(w).Encode(skill)
 }
 
 func addSkill(w http.ResponseWriter, r *http.Request) {

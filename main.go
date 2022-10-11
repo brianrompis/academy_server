@@ -93,6 +93,13 @@ func handleRequests() {
 	myRouter.HandleFunc("/education/user/{user_id}", getUserEducationHistory).Methods("GET")
 	myRouter.HandleFunc("/education/user/{user_id}", removeUserEducationHistory).Methods("DELETE")
 
+	myRouter.HandleFunc("/skill", addSkill).Methods("POST")
+	myRouter.HandleFunc("/skill/{id}", getSkill).Methods("GET")
+	myRouter.HandleFunc("/skill/{id}", editSkill).Methods("PUT")
+	myRouter.HandleFunc("/skill/{id}", removeSkill).Methods("DELETE")
+	myRouter.HandleFunc("/skill/user/{user_id}", getUserSkill).Methods("GET")
+	myRouter.HandleFunc("/skill/user/{user_id}", removeUserSkill).Methods("DELETE")
+
 	//get user basic info
 	myRouter.HandleFunc("/user/{id}", getUser).Methods("GET")
 	// get all ongoing class
