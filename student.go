@@ -24,6 +24,14 @@ func (StudentClassroom) TableName() string {
 	return "student_classroom"
 }
 
+func addStudentClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var student_classroom []StudentClassroom
+	json.NewDecoder(r.Body).Decode(&student_classroom)
+	db.Create(&student_classroom)
+	json.NewEncoder(w).Encode("Successfully add a student to classroom.")
+}
+
 type StudentSubmission struct {
 	ID                 string    `json:"ID"`
 	StudentClassroomID string    `json:"StudentClassroomID"`
@@ -52,6 +60,7 @@ type ResultStudent struct {
 	HasCertificate bool      `json:"HasCertificate"`
 }
 
+// get all student from a classroom
 func classroomStudent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Println("Executing Get All Student function")
@@ -63,41 +72,36 @@ func classroomStudent(w http.ResponseWriter, r *http.Request) {
 	inner join "classroom_period" on "classroom".active_period_id = "classroom_period".id
 	inner join "student_classroom" on "classroom_period".id = "student_classroom".classroom_period_id
 	inner join "user" on "student_classroom".user_id = "user".id
-	where "classroom".id = ?
+	where "classroom".id = ? and "student_classroom".status = 'approved'
 	order by "user".full_name asc`, params["class_id"]).Scan(&resultStudent)
 
 	json.NewEncoder(w).Encode(resultStudent)
 }
 
-// func addStudent(w http.ResponseWriter, r *http.Request) {
-// 	var student []Student
-// 	json.NewDecoder(r.Body).Decode(&student)
-// 	db.Create(&student)
-// }
+// get all registered student from a classroom(not yet approved)
+func registeredClassroomStudent(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Println("Executing Get All Student function")
 
-// func getStudent(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	params := mux.Vars(r)
-// 	var student []Student
-// 	db.First(&student, "id = ?", params["id"])
-// 	json.NewEncoder(w).Encode(student)
-// }
+	params := mux.Vars(r)
+	var resultStudent []ResultStudent
+	db.Raw(`select "student_classroom"."id" as "StudentID", "user"."full_name" as "Name", "user"."email" as "Email", "classroom"."name" as "Classroom", "classroom_period".start_date as "ClassStart", "student_classroom"."grade" as "Grade", "student_classroom".has_certificate as "HasCertificate" 
+	from "classroom"
+	inner join "classroom_period" on "classroom".active_period_id = "classroom_period".id
+	inner join "student_classroom" on "classroom_period".id = "student_classroom".classroom_period_id
+	inner join "user" on "student_classroom".user_id = "user".id
+	where "classroom".id = ? and "student_classroom".status = 'submitted'
+	order by "user".full_name asc`, params["class_id"]).Scan(&resultStudent)
 
-// func editStudent(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	params := mux.Vars(r)
-// 	var student []Student
-// 	db.First(&student, "id = ?", params["id"])
-// 	json.NewDecoder(r.Body).Decode(&student)
-// 	db.Save(&student)
-// 	json.NewEncoder(w).Encode("Successfully edit the student.")
-// }
+	json.NewEncoder(w).Encode(resultStudent)
+}
 
-// func removeStudent(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	params := mux.Vars(r)
-// 	var student []Student
-// 	db.First(&student, "id = ?", params["id"])
-// 	db.Delete(&student)
-// 	json.NewEncoder(w).Encode("The student is deleted successfully!")
-// }
+// approve student to join a class
+func approveStudentToClass(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var classroom_period []ClassroomPeriod
+	json.NewDecoder(r.Body).Decode(&classroom_period)
+	db.Exec(`update "student_classroom" set status = 'approved' where "student_classroom".id = ?`, params["id"])
+	json.NewEncoder(w).Encode("Successfully approve the student.")
+}

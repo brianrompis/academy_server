@@ -81,6 +81,23 @@ func (ClassroomPeriod) TableName() string {
 	return "classroom_period"
 }
 
+// add new classroom period
+func addClassroomPeriod(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var classroom_period []ClassroomPeriod
+	json.NewDecoder(r.Body).Decode(&classroom_period)
+	for _, p := range classroom_period {
+		//a = append(a, p.ID)
+		db.Exec(`with ap as (
+			insert into "classroom_period"(id, classroom_id, start_date, end_date, cert_expired_date)
+			values(?, ?, ?, ?, ?)
+			returning id
+		) update classroom set active_period_id = ? where "classroom".id = ?`,
+			p.ID, p.ClassroomID, p.StartDate, p.EndDate, p.CertExpiredDate, p.ID, p.ClassroomID)
+	}
+	json.NewEncoder(w).Encode("Successfully add the classroom period.")
+}
+
 type RegistrationPeriod struct {
 	ID                string    `json:"ID"`
 	ClassroomPeriodID string    `json:"ClassroomPeriodID"`
@@ -574,18 +591,52 @@ type AvailableClassroom struct {
 	RegistrationEnd       time.Time       `json:"RegistrationEnd"`
 }
 
-// get all active classroom
-func allActiveClassroom(w http.ResponseWriter, r *http.Request) {
+// get all available classroom (today within the registration period)
+func allAvailableClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var availableClassroom []AvailableClassroom
+	db.Raw(`select "classroom".*, "classroom_period".start_date, "classroom_period".end_date, "registration_period".start_date  as "registration_start", "registration_period".end_date as "registration_end"
+	from "registration_period"
+	inner join "classroom_period" on "classroom_period".id = "registration_period".classroom_period_id
+	inner join "classroom" on "classroom_period".classroom_id = "classroom".id 
+	where current_date between  "registration_period".start_date and "registration_period".end_date 
+	order by "registration_period".start_date`).Scan(&availableClassroom)
+
+	json.NewEncoder(w).Encode(availableClassroom)
+}
+
+// get all ongoing classroom
+func allOngoingClassroom(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var availableClassroom []AvailableClassroom
 	db.Raw(`select "classroom".*, "classroom_period".start_date, "classroom_period".end_date, "registration_period".start_date  as "registration_start", "registration_period".end_date as "registration_end"
 	from "classroom_period"
 	inner join "classroom" on "classroom_period".classroom_id = "classroom".id 
-	inner join "registration_period" on "classroom_period".id = "registration_period".classroom_period_id  
+	left join "registration_period" on "classroom_period".id = "registration_period".classroom_period_id  
 	where current_date between "classroom_period".start_date and "classroom_period".end_date
 	order by "classroom_period".start_date`).Scan(&availableClassroom)
 
 	json.NewEncoder(w).Encode(availableClassroom)
+}
+
+// get all student classroom
+func allStudentClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var availableClassroom []AvailableClassroom
+	db.Raw(`select "classroom".*, "classroom_period".start_date, "classroom_period".end_date, "registration_period".start_date  as "registration_start", "registration_period".end_date as "registration_end"
+	from "classroom_period"
+	inner join "classroom" on "classroom_period".classroom_id = "classroom".id 
+	left join "registration_period" on "classroom_period".id = "registration_period".classroom_period_id  
+	where current_date between "classroom_period".start_date and "classroom_period".end_date
+	order by "classroom_period".start_date`).Scan(&availableClassroom)
+
+	json.NewEncoder(w).Encode(availableClassroom)
+}
+
+// get all active classroom (public)
+func allActivePublicClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 }
 
 func postClassesDB(w http.ResponseWriter, r *http.Request) {

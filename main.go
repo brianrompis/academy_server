@@ -94,14 +94,24 @@ func handleRequests() {
 	myRouter.HandleFunc("/education/user/{user_id}", getUserEducationHistory).Methods("GET")
 	myRouter.HandleFunc("/education/user/{user_id}", removeUserEducationHistory).Methods("DELETE")
 
-	// get all active class
-	myRouter.HandleFunc("/active_class", allActiveClassroom).Methods("GET")
+	// get all ongoing class
+	myRouter.HandleFunc("/ongoing_class", allOngoingClassroom).Methods("GET")
+	// student register into classroom
+	myRouter.HandleFunc("/student/register", addStudentClassroom).Methods("POST")
+	// get all available class
+	myRouter.HandleFunc("/available_class", allAvailableClassroom).Methods("GET")
 	// get all student from a class
 	myRouter.HandleFunc("/student/{class_id}", classroomStudent).Methods("GET")
+	// get all registered student from a class(not yet approved)
+	myRouter.HandleFunc("/registered_student/{class_id}", registeredClassroomStudent).Methods("GET")
+	// approve student to join a class
+	myRouter.HandleFunc("/approve_student/{id}", approveStudentToClass).Methods("PUT")
 	// get all classroom from a teacher
 	myRouter.HandleFunc("/teacher/class/{teacher_id}", getTeacherClass).Methods("GET")
 	// user's qualification
 	myRouter.HandleFunc("/student/qualification/{user_id}", getStudentQualification).Methods("GET")
+	// add classroom period
+	myRouter.HandleFunc("/class/period", addClassroomPeriod).Methods("POST")
 
 	// apply middleware
 	var handler http.Handler = myRouter
