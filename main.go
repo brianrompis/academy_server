@@ -82,7 +82,6 @@ func handleRequests() {
 
 	myRouter.HandleFunc("/user", allUser).Methods("GET")
 	myRouter.HandleFunc("/user", addUser).Methods("POST")
-	myRouter.HandleFunc("/user/{id}", getUser).Methods("GET")
 	myRouter.HandleFunc("/user/{id}", editUser).Methods("PUT")
 	myRouter.HandleFunc("/user/{id}", removeUser).Methods("DELETE")
 
@@ -94,6 +93,8 @@ func handleRequests() {
 	myRouter.HandleFunc("/education/user/{user_id}", getUserEducationHistory).Methods("GET")
 	myRouter.HandleFunc("/education/user/{user_id}", removeUserEducationHistory).Methods("DELETE")
 
+	//get user basic info
+	myRouter.HandleFunc("/user/{id}", getUser).Methods("GET")
 	// get all ongoing class
 	myRouter.HandleFunc("/ongoing_class", allOngoingClassroom).Methods("GET")
 	// student register into classroom

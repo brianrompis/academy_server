@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/copier"
 )
 
 type User struct {
@@ -57,6 +58,28 @@ func addUser(w http.ResponseWriter, r *http.Request) {
 	db.Create(&user)
 }
 
+type ResultUser struct {
+	ID                 string    `json:"ID"`
+	FullName           string    `json:"FullName"`
+	NickName           string    `json:"NickName"`
+	Email              string    `json:"Email"`
+	Phone              string    `json:"Phone"`
+	Birth              time.Time `json:"Birth"`
+	Gender             string    `json:"Gender"`
+	Address            string    `json:"Address"`
+	City               string    `json:"City"`
+	Country            string    `json:"Country"`
+	Nationality        string    `json:"Nationality"`
+	VerificationStatus string    `json:"VerificationStatus"`
+	IsVerified         bool      `json:"IsVerified"`
+	TeacherStatus      string    `json:"TeacherStatus"`
+	IsTeacher          bool      `json:"IsTeacher"`
+	EmployeeID         string    `json:"EmployeeID"`
+	IDCardNumber       string    `json:"IDCardNumber"`
+	IsHRManager        bool      `json:"IsHRManager" gorm:"column:is_hr_manager"`
+	IsBanned           bool      `json:"IsBanned"`
+}
+
 func getUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method == "OPTIONS" {
@@ -64,9 +87,11 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	params := mux.Vars(r)
-	var user []User
+	var user User
 	db.First(&user, "id = ?", params["id"])
-	json.NewEncoder(w).Encode(user)
+	resUser := ResultUser{}
+	copier.Copy(&resUser, &user)
+	json.NewEncoder(w).Encode(resUser)
 }
 
 func editUser(w http.ResponseWriter, r *http.Request) {
