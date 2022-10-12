@@ -29,10 +29,12 @@ type User struct {
 	IDCardNumber       string    `json:"IDCardNumber"`
 	IsHRManager        bool      `json:"IsHRManager" gorm:"column:is_hr_manager"`
 	IsBanned           bool      `json:"IsBanned"`
+	IsAdmin            bool      `json:"IsAdmin"`
 	TeacherClassroom   []TeacherClassroom
 	Classroom          []Classroom `gorm:"foreignKey:CreatedBy"`
 	StudentClassroom   []StudentClassroom
-	UserVote           []UserVote
+	VoteNew            []VoteNew
+	VoteExisting       []VoteExisting
 	SuggestedClassroom []SuggestedClassroom `gorm:"foreignKey:UserSuggestedID"`
 	JobVacancy         []JobVacancy         `gorm:"foreignKey:CreatedBy"`
 	UserApplication    []UserApplication
@@ -78,6 +80,7 @@ type ResultUser struct {
 	IDCardNumber       string    `json:"IDCardNumber"`
 	IsHRManager        bool      `json:"IsHRManager" gorm:"column:is_hr_manager"`
 	IsBanned           bool      `json:"IsBanned"`
+	IsAdmin            bool      `json:"IsAdmin"`
 }
 
 func getUser(w http.ResponseWriter, r *http.Request) {
@@ -111,4 +114,26 @@ func removeUser(w http.ResponseWriter, r *http.Request) {
 	db.First(&user, "id = ?", params["id"])
 	db.Delete(&user)
 	json.NewEncoder(w).Encode("The user is deleted successfully!")
+}
+
+type Status struct {
+	IsTeacher   bool
+	IsHRManager bool
+	IsAdmin     bool
+}
+
+func getRole(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var status Status
+	db.Model(&User{}).Where("id = ?", params["id"]).Find(&status)
+	json.NewEncoder(w).Encode(status)
+}
+
+func isArchipelagoEmployee(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var user User
+	params := mux.Vars(r)
+	db.First(&user, "id = ?", params["id"])
+	json.NewEncoder(w).Encode(user.EmployeeID)
 }

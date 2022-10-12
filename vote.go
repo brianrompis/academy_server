@@ -1,5 +1,13 @@
 package main
 
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/gorilla/mux"
+	"github.com/jinzhu/copier"
+)
+
 // import (
 // 	"encoding/json"
 // 	"net/http"
@@ -7,16 +15,26 @@ package main
 // 	"github.com/gorilla/mux"
 // )
 
-type UserVote struct {
+type VoteNew struct {
 	ID                   string `json:"ID"`
 	UserID               string `json:"UserID"`
-	ClassroomID          string `json:"ClassroomID"`
 	SuggestedClassroomID string `json:"SuggestedClassroomID"`
 	VoteType             string `json:"VoteType"`
 }
 
-func (UserVote) TableName() string {
-	return "user_vote"
+func (VoteNew) TableName() string {
+	return "vote_new"
+}
+
+type VoteExisting struct {
+	ID          string `json:"ID"`
+	UserID      string `json:"UserID"`
+	ClassroomID string `json:"ClassroomID"`
+	VoteType    string `json:"VoteType"`
+}
+
+func (VoteExisting) TableName() string {
+	return "vote_existing"
 }
 
 type SuggestedClassroom struct {
@@ -25,52 +43,85 @@ type SuggestedClassroom struct {
 	Description     string `json:"Description"`
 	UserSuggestedID string `json:"UserSuggestedID"`
 	Status          string `json:"Status"`
-	UserVote        []UserVote
+	VoteNew         []VoteNew
 }
 
 func (SuggestedClassroom) TableName() string {
 	return "suggested_classroom"
 }
 
-// func (Teacher) TableName() string {
-// 	return "teachers"
-// }
+type UserVoteExisting struct {
+	ID          string `json:"ID"`
+	UserID      string `json:"UserID"`
+	ClassroomID string `json:"ClassroomID"`
+	VoteType    string `json:"VoteType"`
+}
 
-// func allTeacher(w http.ResponseWriter, r *http.Request) {
-// 	var teacher []Teacher
-// 	db.Find(&teacher)
-// 	json.NewEncoder(w).Encode(teacher)
-// }
+type UserVoteNew struct {
+	ID                   string `json:"ID"`
+	UserID               string `json:"UserID"`
+	SuggestedClassroomID string `json:"SuggestedClassroomID"`
+	VoteType             string `json:"VoteType"`
+}
 
-// func addTeacher(w http.ResponseWriter, r *http.Request) {
-// 	var teacher []Teacher
-// 	json.NewDecoder(r.Body).Decode(&teacher)
-// 	db.Create(&teacher)
-// }
+func addVoteNew(w http.ResponseWriter, r *http.Request) {
+	var vote_new []VoteNew
+	json.NewDecoder(r.Body).Decode(&vote_new)
+	if err := db.Create(&vote_new).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode("Added successfully!")
+	}
+}
 
-// func getTeacher(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	params := mux.Vars(r)
-// 	var teacher []Teacher
-// 	db.First(&teacher, "id = ?", params["id"])
-// 	json.NewEncoder(w).Encode(teacher)
-// }
+func addVoteExisting(w http.ResponseWriter, r *http.Request) {
+	var vote_existing []VoteExisting
+	json.NewDecoder(r.Body).Decode(&vote_existing)
+	if err := db.Create(&vote_existing).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode("Added successfully!")
+	}
+}
 
-// func editTeacher(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	params := mux.Vars(r)
-// 	var teacher []Teacher
-// 	db.First(&teacher, "id = ?", params["id"])
-// 	json.NewDecoder(r.Body).Decode(&teacher)
-// 	db.Save(&teacher)
-// 	json.NewEncoder(w).Encode("Successfully edit the teacher.")
-// }
+func getClassVote(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var user_vote []VoteExisting
+	db.Where("classroom_id = ?", params["classroom_id"]).Find(&user_vote)
+	json.NewEncoder(w).Encode(user_vote)
+}
 
-// func removeTeacher(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	params := mux.Vars(r)
-// 	var teacher []Teacher
-// 	db.First(&teacher, "id = ?", params["id"])
-// 	db.Delete(&teacher)
-// 	json.NewEncoder(w).Encode("The teacher is deleted successfully!")
-// }
+func getSuggestedClassVote(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var user_vote []VoteNew
+	db.Where("suggested_classroom_id = ?", params["classroom_id"]).Find(&user_vote)
+	json.NewEncoder(w).Encode(user_vote)
+}
+
+func addSuggestedClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var suggestedClassroom []SuggestedClassroom
+	json.NewDecoder(r.Body).Decode(&suggestedClassroom)
+	db.Create(&suggestedClassroom)
+	json.NewEncoder(w).Encode("Successfully added!")
+}
+
+type ResultSuggestedClassroom struct {
+	ID              string `json:"ID"`
+	Name            string `json:"Name"`
+	Description     string `json:"Description"`
+	UserSuggestedID string `json:"UserSuggestedID"`
+	Status          string `json:"Status"`
+}
+
+func getSuggestedClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var suggestedClassroom []SuggestedClassroom
+	db.Where("id = ?", params["id"]).Find(&suggestedClassroom)
+	resClassroom := []ResultSuggestedClassroom{}
+	copier.Copy(&resClassroom, &suggestedClassroom)
+	json.NewEncoder(w).Encode(resClassroom)
+}

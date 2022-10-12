@@ -48,7 +48,7 @@ type Classroom struct {
 	Topic                  []Topic
 	ClassroomPeriod        []ClassroomPeriod
 	Assignment             []Assignment
-	UserVote               []UserVote
+	VoteExisting           []VoteExisting
 	TeacherClassroom       []TeacherClassroom
 	QualificationClassroom []QualificationClassroom
 }
@@ -253,23 +253,23 @@ func refreshData(w http.ResponseWriter, r *http.Request) {
 	var courses Courses
 	for _, c := range classroom {
 		resCourse := Course{
-			Id:                c.ID,
-			Name:              c.Name,
-			DepartmentId:      c.DepartmentId,
-			GoogleClassroomId: c.GoogleClassroomId,
-			AlternateLink:     c.Link,
-			Status:            c.Status,
-			Public:            c.IsPublic,
-			PassingGrade:      c.PassingGrade,
-			Capacity:          c.Capacity,
+			Id:                 c.ID,
+			Name:               c.Name,
+			GoogleClassroomId:  c.GoogleClassroomId,
+			AlternateLink:      c.Link,
+			Status:             c.Status,
+			Public:             c.IsPublic,
+			PassingGrade:       c.PassingGrade,
+			Capacity:           c.Capacity,
+			DepartmentId:       c.DepartmentId,
+			Section:            c.Section,
+			DescriptionHeading: c.DescriptionHeading,
+			Description:        c.Description,
 			// ClassStart:         c.ClassStart,
 			// ClassEnd:           c.ClassEnd,
 			// RegistrationStart:  c.RegistrationStart,
 			// RegistrationEnd:    c.RegistrationEnd,
-			Section:            c.Section,
-			DescriptionHeading: c.DescriptionHeading,
-			Description:        c.Description,
-			Topics:             getTopicFromDB(c.ID),
+			Topics: getTopicFromDB(c.ID),
 		}
 		courses = append(courses, resCourse)
 	}

@@ -45,7 +45,6 @@ func handleRequests() {
 
 	myRouter.HandleFunc("/sync", refreshData).Methods("GET")
 
-	myRouter.HandleFunc("/classes", allClassroomsDB).Methods("GET")
 	myRouter.HandleFunc("/classes", postClassesDB).Methods("POST")
 	myRouter.HandleFunc("/classes/{id}", getClass).Methods("GET")
 	myRouter.HandleFunc("/classes/{id}", editClass).Methods("PUT")
@@ -99,6 +98,8 @@ func handleRequests() {
 	myRouter.HandleFunc("/skill/user/{user_id}", getUserSkill).Methods("GET")
 	myRouter.HandleFunc("/skill/user/{user_id}", removeUserSkill).Methods("DELETE")
 
+	// get all classroom
+	myRouter.HandleFunc("/classes", allClassroomsDB).Methods("GET")
 	// get user basic info
 	myRouter.HandleFunc("/user/{id}", getUser).Methods("GET")
 	// get all reviewed classroom
@@ -125,6 +126,22 @@ func handleRequests() {
 	myRouter.HandleFunc("/class/period", addClassroomPeriod).Methods("POST")
 	// get all teacher
 	myRouter.HandleFunc("/teacher", allTeacher).Methods("GET")
+	// get user role
+	myRouter.HandleFunc("/user_role/{id}", getRole).Methods("GET")
+	// is user arhchipelago employee
+	myRouter.HandleFunc("/user_isarchi/{id}", isArchipelagoEmployee).Methods("GET")
+	// add vote for suggested classroom
+	myRouter.HandleFunc("/vote_suggested", addVoteNew).Methods("POST")
+	// add vote for existing classroom
+	myRouter.HandleFunc("/vote_existing", addVoteExisting).Methods("POST")
+	// get suggested classroom vote
+	myRouter.HandleFunc("/vote/suggested_classroom/{classroom_id}", getSuggestedClassVote).Methods("GET")
+	// get existing classroom vote
+	myRouter.HandleFunc("/vote/classroom/{classroom_id}", getClassVote).Methods("GET")
+	// add suggested classroom
+	myRouter.HandleFunc("/suggested_classroom", addSuggestedClassroom).Methods("POST")
+	// get suggested classroom
+	myRouter.HandleFunc("/suggested_classroom/{classroom_id}", getSuggestedClassroom).Methods("GET")
 
 	// apply middleware
 	var handler http.Handler = myRouter
