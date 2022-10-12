@@ -78,6 +78,37 @@ func classroomStudent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resultStudent)
 }
 
+// get all student with it's classrooms
+type ResultAllStudent struct {
+	ID             string    `json:"ID"`
+	UserID         string    `json:"UserID"`
+	Email          string    `json:"Email"`
+	Name           string    `json:"Name"`
+	ClassroomID    string    `json:"ClassroomID"`
+	Classroom      string    `json:"Classroom"`
+	ClassStart     time.Time `json:"ClassStart"`
+	ClassEnd       time.Time `json:"ClassEnd"`
+	Grade          float64   `json:"Grade"`
+	HasCertificate bool      `json:"HasCertificate"`
+}
+
+func allClassroomStudent(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Println("Executing Get All Student function")
+	var resultAllStudent []ResultAllStudent
+	db.Raw(`select sc.id as "id", u.id as "user_id", u.email as "email", u.full_name as "name"
+	, c.id as "classroom_id", c."name" as "classroom"
+	, cp.start_date as "class_start", cp.end_date as "class_end"
+	, sc.grade, sc.has_certificate 
+	from student_classroom sc 
+	inner join "user" u on sc.user_id = u.id 
+	inner join classroom_period cp  on sc.classroom_period_id = cp.id 
+	inner join classroom c on cp.classroom_id = c.id 
+	order by "email", "classroom"`).Scan(&resultAllStudent)
+
+	json.NewEncoder(w).Encode(resultAllStudent)
+}
+
 // get all registered student from a classroom(not yet approved)
 func registeredClassroomStudent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")

@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/copier"
 	"github.com/shopspring/decimal"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/classroom/v1"
@@ -617,6 +618,16 @@ func allOngoingClassroom(w http.ResponseWriter, r *http.Request) {
 	order by "classroom_period".start_date`).Scan(&availableClassroom)
 
 	json.NewEncoder(w).Encode(availableClassroom)
+}
+
+// get all reviewed classroom
+func allReviewedClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var classroom []Classroom
+	db.Where("status = 'REVIEWED'").Find(&classroom)
+	resClassroom := []AvailableClassroom{}
+	copier.Copy(&resClassroom, &classroom)
+	json.NewEncoder(w).Encode(resClassroom)
 }
 
 // get all student classroom

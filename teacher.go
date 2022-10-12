@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/copier"
 )
 
 type TeacherClassroom struct {
@@ -37,11 +38,36 @@ func (GradeAssignHistory) TableName() string {
 ///////////////////////////////////
 //////// Get all teacher //////////
 ///////////////////////////////////
+type ReturnedTeacher struct {
+	ID                 string    `json:"ID"`
+	FullName           string    `json:"FullName"`
+	NickName           string    `json:"NickName"`
+	Email              string    `json:"Email"`
+	Phone              string    `json:"Phone"`
+	Birth              time.Time `json:"Birth"`
+	Gender             string    `json:"Gender"`
+	Address            string    `json:"Address"`
+	City               string    `json:"City"`
+	Country            string    `json:"Country"`
+	Nationality        string    `json:"Nationality"`
+	VerificationStatus string    `json:"VerificationStatus"`
+	IsVerified         bool      `json:"IsVerified"`
+	TeacherStatus      string    `json:"TeacherStatus"`
+	IsTeacher          bool      `json:"IsTeacher"`
+	EmployeeID         string    `json:"EmployeeID"`
+	IDCardNumber       string    `json:"IDCardNumber"`
+	IsHRManager        bool      `json:"IsHRManager"`
+	IsBanned           bool      `json:"IsBanned"`
+}
+
 // select all user with is_teacher true
 func allTeacher(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var users []User
 	db.Where("is_teacher = ?", true).Find(&users)
-	json.NewEncoder(w).Encode(users)
+	teacher := []ReturnedTeacher{}
+	copier.Copy(&teacher, &users)
+	json.NewEncoder(w).Encode(teacher)
 }
 
 ///////////////////////////////////
