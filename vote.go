@@ -84,7 +84,7 @@ func addVoteExisting(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getClassVote(w http.ResponseWriter, r *http.Request) {
+func getClassroomVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	var user_vote []VoteExisting
@@ -92,12 +92,45 @@ func getClassVote(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user_vote)
 }
 
-func getSuggestedClassVote(w http.ResponseWriter, r *http.Request) {
+func countClassroomVote(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var voteCount VoteCount
+	if err := db.Raw(`select
+		sum(case when vote_type = 'up' then 1 else 0 end) as vote_up,
+		sum(case when vote_type = 'down' then 1 else 0 end) as vote_down
+		FROM vote_existing vn  WHERE classroom_id  = ?`, params["classroom_id"]).Scan(&voteCount).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode(voteCount)
+	}
+}
+
+func getSuggestedClassroomVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	var user_vote []VoteNew
 	db.Where("suggested_classroom_id = ?", params["classroom_id"]).Find(&user_vote)
 	json.NewEncoder(w).Encode(user_vote)
+}
+
+type VoteCount struct {
+	VoteUp   int `json:"VoteUp"`
+	VoteDown int `json:"VoteDown"`
+}
+
+func countSuggestedClassroomVote(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var voteCount VoteCount
+	if err := db.Raw(`select
+		sum(case when vote_type = 'up' then 1 else 0 end) as vote_up,
+		sum(case when vote_type = 'down' then 1 else 0 end) as vote_down
+		FROM vote_new vn  WHERE suggested_classroom_id  = ?`, params["classroom_id"]).Scan(&voteCount).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode(voteCount)
+	}
 }
 
 func addSuggestedClassroom(w http.ResponseWriter, r *http.Request) {

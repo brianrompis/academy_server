@@ -135,9 +135,13 @@ func handleRequests() {
 	// add vote for existing classroom
 	myRouter.HandleFunc("/vote_existing", addVoteExisting).Methods("POST")
 	// get suggested classroom vote
-	myRouter.HandleFunc("/vote/suggested_classroom/{classroom_id}", getSuggestedClassVote).Methods("GET")
+	myRouter.HandleFunc("/vote/suggested_classroom/{classroom_id}", getSuggestedClassroomVote).Methods("GET")
+	// count suggested classroom vote
+	myRouter.HandleFunc("/vote_count/suggested_classroom/{classroom_id}", countSuggestedClassroomVote).Methods("GET")
 	// get existing classroom vote
-	myRouter.HandleFunc("/vote/classroom/{classroom_id}", getClassVote).Methods("GET")
+	myRouter.HandleFunc("/vote/classroom/{classroom_id}", getClassroomVote).Methods("GET")
+	// count existing classroom vote
+	myRouter.HandleFunc("/vote_count/classroom/{classroom_id}", countClassroomVote).Methods("GET")
 	// add suggested classroom
 	myRouter.HandleFunc("/suggested_classroom", addSuggestedClassroom).Methods("POST")
 	// get suggested classroom
