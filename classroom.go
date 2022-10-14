@@ -82,21 +82,26 @@ func (ClassroomPeriod) TableName() string {
 	return "classroom_period"
 }
 
+// type classPeriodReturn struct {
+
+// }
+
 // add new classroom period
 func addClassroomPeriod(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var classroom_period []ClassroomPeriod
+	var classroom_period ClassroomPeriod
 	json.NewDecoder(r.Body).Decode(&classroom_period)
-	for _, p := range classroom_period {
-		//a = append(a, p.ID)
-		db.Exec(`with ap as (
-			insert into "classroom_period"(id, classroom_id, start_date, end_date, cert_expired_date)
-			values(?, ?, ?, ?, ?)
-			returning id
-		) update classroom set active_period_id = ? where "classroom".id = ?`,
-			p.ID, p.ClassroomID, p.StartDate, p.EndDate, p.CertExpiredDate, p.ID, p.ClassroomID)
+	//a = append(a, p.ID)
+	if err := db.Exec(`with ap as (
+		insert into "classroom_period"(id, classroom_id, start_date, end_date, cert_expired_date)
+		values(?, ?, ?, ?, ?)
+		returning id
+	) update classroom set active_period_id = ? where "classroom".id = ?`,
+		classroom_period.ID, classroom_period.ClassroomID, classroom_period.StartDate, classroom_period.EndDate, classroom_period.CertExpiredDate, classroom_period.ID, classroom_period.ClassroomID).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode("Added successfully.")
 	}
-	json.NewEncoder(w).Encode("Successfully add the classroom period.")
 }
 
 type RegistrationPeriod struct {
@@ -542,32 +547,34 @@ func sendInvitation(id string, user string, role string, srv *classroom.Service)
 func allClassroomsDB(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var classroom []Classroom
-	db.Find(&classroom)
-
-	var courses Courses
-	for _, c := range classroom {
-		resCourse := Course{
-			Id:                c.ID,
-			Name:              c.Name,
-			DepartmentId:      c.DepartmentId,
-			GoogleClassroomId: c.GoogleClassroomId,
-			AlternateLink:     c.Link,
-			Status:            c.Status,
-			Public:            c.IsPublic,
-			PassingGrade:      c.PassingGrade,
-			Capacity:          c.Capacity,
-			// ClassStart:         c.ClassStart,
-			// ClassEnd:           c.ClassEnd,
-			// RegistrationStart:  c.RegistrationStart,
-			// RegistrationEnd:    c.RegistrationEnd,
-			Section:            c.Section,
-			DescriptionHeading: c.DescriptionHeading,
-			Description:        c.Description,
-			Topics:             getTopicFromDB(c.ID),
+	if err := db.Find(&classroom).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		var courses Courses
+		for _, c := range classroom {
+			resCourse := Course{
+				Id:                c.ID,
+				Name:              c.Name,
+				DepartmentId:      c.DepartmentId,
+				GoogleClassroomId: c.GoogleClassroomId,
+				AlternateLink:     c.Link,
+				Status:            c.Status,
+				Public:            c.IsPublic,
+				PassingGrade:      c.PassingGrade,
+				Capacity:          c.Capacity,
+				// ClassStart:         c.ClassStart,
+				// ClassEnd:           c.ClassEnd,
+				// RegistrationStart:  c.RegistrationStart,
+				// RegistrationEnd:    c.RegistrationEnd,
+				Section:            c.Section,
+				DescriptionHeading: c.DescriptionHeading,
+				Description:        c.Description,
+				Topics:             getTopicFromDB(c.ID),
+			}
+			courses = append(courses, resCourse)
 		}
-		courses = append(courses, resCourse)
+		json.NewEncoder(w).Encode(&courses)
 	}
-	json.NewEncoder(w).Encode(&courses)
 }
 
 type AvailableClassroom struct {

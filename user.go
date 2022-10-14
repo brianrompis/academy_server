@@ -55,9 +55,24 @@ func allUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func addUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var user []User
 	json.NewDecoder(r.Body).Decode(&user)
-	db.Create(&user)
+	if err := db.Create(&user).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode("Added successfully.")
+	}
+}
+
+func countUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var userCount int64
+	if err := db.Model(&User{}).Count(&userCount).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode(userCount)
+	}
 }
 
 type ResultUser struct {

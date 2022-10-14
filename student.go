@@ -78,6 +78,47 @@ func classroomStudent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resultStudent)
 }
 
+// count registered student in a classroom
+type CountStudent struct {
+	PeriodID  string    `json:"PeriodID"`
+	StartDate time.Time `json:"StartDate"`
+	EndDate   time.Time `json:"EndDate"`
+	Student   int       `json:"Student"`
+}
+
+func countRegisteredStudentInClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var count_student []CountStudent
+	if err := db.Raw(`select cp.id as "period_id", cp.start_date, cp.end_date, count(1) as "student"
+		from student_classroom sc 
+		inner join classroom_period cp on sc.classroom_period_id = cp.id 
+		inner join classroom c on cp.classroom_id = c.id
+		where c.id = ? and sc.status != 'approved'
+		group by cp.id`, params["class_id"]).Scan(&count_student).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode(count_student)
+	}
+}
+
+// count approved student in a classroom
+func countApprovedStudentInClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var count_student []CountStudent
+	if err := db.Raw(`select cp.id as "period_id", cp.start_date, cp.end_date, count(1) as "student"
+		from student_classroom sc 
+		inner join classroom_period cp on sc.classroom_period_id = cp.id 
+		inner join classroom c on cp.classroom_id = c.id
+		where c.id = ? and sc.status = 'approved'
+		group by cp.id`, params["class_id"]).Scan(&count_student).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode(count_student)
+	}
+}
+
 // get all student with it's classrooms
 type ResultAllStudent struct {
 	ID             string    `json:"ID"`
@@ -121,7 +162,7 @@ func registeredClassroomStudent(w http.ResponseWriter, r *http.Request) {
 	inner join "classroom_period" on "classroom".active_period_id = "classroom_period".id
 	inner join "student_classroom" on "classroom_period".id = "student_classroom".classroom_period_id
 	inner join "user" on "student_classroom".user_id = "user".id
-	where "classroom".id = ? and "student_classroom".status = 'submitted'
+	where "classroom".id = ? and "student_classroom".status != 'approved'
 	order by "user".full_name asc`, params["class_id"]).Scan(&resultStudent)
 
 	json.NewEncoder(w).Encode(resultStudent)

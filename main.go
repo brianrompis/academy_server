@@ -79,7 +79,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/teacher", addTeacher).Methods("POST")
 
 	myRouter.HandleFunc("/user", allUser).Methods("GET")
-	myRouter.HandleFunc("/user", addUser).Methods("POST")
+
 	myRouter.HandleFunc("/user/{id}", editUser).Methods("PUT")
 	myRouter.HandleFunc("/user/{id}", removeUser).Methods("DELETE")
 
@@ -98,6 +98,10 @@ func handleRequests() {
 	myRouter.HandleFunc("/skill/user/{user_id}", getUserSkill).Methods("GET")
 	myRouter.HandleFunc("/skill/user/{user_id}", removeUserSkill).Methods("DELETE")
 
+	// register a new user
+	myRouter.HandleFunc("/user", addUser).Methods("POST")
+	// count all user
+	myRouter.HandleFunc("/count_user", countUser).Methods("GET")
 	// get all classroom
 	myRouter.HandleFunc("/classes", allClassroomsDB).Methods("GET")
 	// get user basic info
@@ -114,6 +118,10 @@ func handleRequests() {
 	myRouter.HandleFunc("/student", allClassroomStudent).Methods("GET")
 	// get all student from a class
 	myRouter.HandleFunc("/student/{class_id}", classroomStudent).Methods("GET")
+	// count registered student from a class
+	myRouter.HandleFunc("/count_student_registered/{class_id}", countRegisteredStudentInClassroom).Methods("GET")
+	// count approved student from a class
+	myRouter.HandleFunc("/count_student_approved/{class_id}", countApprovedStudentInClassroom).Methods("GET")
 	// get all registered student from a class(not yet approved)
 	myRouter.HandleFunc("/registered_student/{class_id}", registeredClassroomStudent).Methods("GET")
 	// approve student to join a class

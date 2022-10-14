@@ -88,8 +88,11 @@ func getClassroomVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	var user_vote []VoteExisting
-	db.Where("classroom_id = ?", params["classroom_id"]).Find(&user_vote)
-	json.NewEncoder(w).Encode(user_vote)
+	if err := db.Where("classroom_id = ?", params["classroom_id"]).Find(&user_vote).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode(user_vote)
+	}
 }
 
 func countClassroomVote(w http.ResponseWriter, r *http.Request) {
@@ -110,8 +113,11 @@ func getSuggestedClassroomVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	var user_vote []VoteNew
-	db.Where("suggested_classroom_id = ?", params["classroom_id"]).Find(&user_vote)
-	json.NewEncoder(w).Encode(user_vote)
+	if err := db.Where("suggested_classroom_id = ?", params["classroom_id"]).Find(&user_vote).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode(user_vote)
+	}
 }
 
 type VoteCount struct {
@@ -137,8 +143,11 @@ func addSuggestedClassroom(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var suggestedClassroom []SuggestedClassroom
 	json.NewDecoder(r.Body).Decode(&suggestedClassroom)
-	db.Create(&suggestedClassroom)
-	json.NewEncoder(w).Encode("Successfully added!")
+	if err := db.Create(&suggestedClassroom).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode("Successfully added!")
+	}
 }
 
 type ResultSuggestedClassroom struct {
@@ -153,8 +162,11 @@ func getSuggestedClassroom(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	var suggestedClassroom []SuggestedClassroom
-	db.Where("id = ?", params["id"]).Find(&suggestedClassroom)
-	resClassroom := []ResultSuggestedClassroom{}
-	copier.Copy(&resClassroom, &suggestedClassroom)
-	json.NewEncoder(w).Encode(resClassroom)
+	if err := db.Where("id = ?", params["id"]).Find(&suggestedClassroom).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		resClassroom := []ResultSuggestedClassroom{}
+		copier.Copy(&resClassroom, &suggestedClassroom)
+		json.NewEncoder(w).Encode(resClassroom)
+	}
 }
