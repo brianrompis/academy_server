@@ -119,7 +119,7 @@ func editUser(w http.ResponseWriter, r *http.Request) {
 	db.First(&user, "id = ?", params["id"])
 	json.NewDecoder(r.Body).Decode(&user)
 	db.Save(&user)
-	json.NewEncoder(w).Encode("Successfully edit the user.")
+	json.NewEncoder(w).Encode("Successfully edited the user.")
 }
 
 func removeUser(w http.ResponseWriter, r *http.Request) {

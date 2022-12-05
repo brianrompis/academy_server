@@ -12,21 +12,22 @@ import (
 /////////// Employment History //////////
 /////////////////////////////////////////
 type EmploymentHistory struct {
-	ID              string    `json:"ID"`
-	UserID          string    `json:"UserID"`
-	Position        string    `json:"Position"`
-	CompanyName     string    `json:"CompanyName"`
-	StartDate       time.Time `json:"StartDate"`
-	EndDate         time.Time `json:"EndDate"`
-	City            string    `json:"City"`
-	Country         string    `json:"Country"`
-	Description     string    `json:"Description"`
-	IsArchipelago   bool      `json:"IsArchipelago"`
-	HotelID         string    `json:"HotelID"`
-	ContactName     string    `json:"ContactName"`
-	ContactPosition string    `json:"ContactPosition"`
-	ContactEmail    string    `json:"ContactEmail"`
-	ContactPhone    string    `json:"ContactPhone"`
+	ID                string    `json:"ID"`
+	UserID            string    `json:"UserID"`
+	Position          string    `json:"Position"`
+	CompanyName       string    `json:"CompanyName"`
+	CompanyPublicName string    `json:"CompanyPublicName"`
+	StartDate         time.Time `json:"StartDate"`
+	EndDate           time.Time `json:"EndDate"`
+	City              string    `json:"City"`
+	Country           string    `json:"Country"`
+	Description       string    `json:"Description"`
+	IsArchipelago     bool      `json:"IsArchipelago"`
+	HotelID           string    `json:"HotelID"`
+	ContactName       string    `json:"ContactName"`
+	ContactPosition   string    `json:"ContactPosition"`
+	ContactEmail      string    `json:"ContactEmail"`
+	ContactPhone      string    `json:"ContactPhone"`
 }
 
 func (EmploymentHistory) TableName() string {
@@ -43,7 +44,7 @@ func addEmploymentHistory(w http.ResponseWriter, r *http.Request) {
 	var employment_history []EmploymentHistory
 	json.NewDecoder(r.Body).Decode(&employment_history)
 	db.Create(&employment_history)
-	json.NewEncoder(w).Encode("Successfully add an employment history.")
+	json.NewEncoder(w).Encode("Successfully added an employment history.")
 }
 
 func getEmploymentHistory(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +62,7 @@ func editEmploymentHistory(w http.ResponseWriter, r *http.Request) {
 	db.First(&employment_history, "id = ?", params["id"])
 	json.NewDecoder(r.Body).Decode(&employment_history)
 	db.Save(&employment_history)
-	json.NewEncoder(w).Encode("Successfully edit the employment_history.")
+	json.NewEncoder(w).Encode("Successfully edited the employment_history.")
 }
 
 func removeEmploymentHistory(w http.ResponseWriter, r *http.Request) {
@@ -144,7 +145,7 @@ func addEducationHistory(w http.ResponseWriter, r *http.Request) {
 	var education []EducationHistory
 	json.NewDecoder(r.Body).Decode(&education)
 	db.Create(&education)
-	json.NewEncoder(w).Encode("Successfully add the education history.")
+	json.NewEncoder(w).Encode("Successfully added the education history.")
 }
 
 func getEducationHistory(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +163,7 @@ func editEducationHistory(w http.ResponseWriter, r *http.Request) {
 	db.First(&education, "id = ?", params["id"])
 	json.NewDecoder(r.Body).Decode(&education)
 	db.Save(&education)
-	json.NewEncoder(w).Encode("Successfully edit the education history.")
+	json.NewEncoder(w).Encode("Successfully edited the education history.")
 }
 
 func removeEducationHistory(w http.ResponseWriter, r *http.Request) {
@@ -209,7 +210,7 @@ func addSkill(w http.ResponseWriter, r *http.Request) {
 	var skill []Skill
 	json.NewDecoder(r.Body).Decode(&skill)
 	db.Create(&skill)
-	json.NewEncoder(w).Encode("Successfully add the skill.")
+	json.NewEncoder(w).Encode("Successfully added the skill.")
 }
 
 func getSkill(w http.ResponseWriter, r *http.Request) {
@@ -227,7 +228,7 @@ func editSkill(w http.ResponseWriter, r *http.Request) {
 	db.First(&skill, "id = ?", params["id"])
 	json.NewDecoder(r.Body).Decode(&skill)
 	db.Save(&skill)
-	json.NewEncoder(w).Encode("Successfully edit the skill.")
+	json.NewEncoder(w).Encode("Successfully edited the skill.")
 }
 
 func removeSkill(w http.ResponseWriter, r *http.Request) {

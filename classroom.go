@@ -42,6 +42,7 @@ type Classroom struct {
 	Section                string          `json:"Section" gorm:"column:section"`
 	DescriptionHeading     string          `json:"DescriptionHeading" gorm:"column:description_heading"`
 	Description            string          `json:"Description" gorm:"column:description"`
+	IsDisabled             bool            `json:"IsDisabled" gorm:"column:is_disabled"`
 	CertificateTemplateID  string          `json:"CertificateTemplateID" gorm:"column:certificate_template_id"`
 	DepartmentId           string          `json:"DepartmentId" gorm:"column:department_id"`
 	ActivePeriodID         string          `json:"ActivePeriodID" gorm:"column:active_period_id"`
@@ -144,6 +145,7 @@ type Course struct {
 	Section            string           `json:"Section"`
 	DescriptionHeading string           `json:"DescriptionHeading"`
 	Description        string           `json:"Description"`
+	IsDisabled         bool             `json:"IsDisabled"`
 	Topics             SimplifiedTopics `json:"Topics"`
 }
 
@@ -248,6 +250,27 @@ func classroomClient() *classroom.Service {
 // 	return classes
 // }
 
+func getGoogleClassroomList() {
+
+	srv := classroomClient()
+
+	// get class list from database
+
+	// get class data from Google Classroom
+	r, err := srv.Courses.List().PageSize(150).Do()
+	if err != nil {
+		log.Fatalf("Unable to retrieve courses. %v", err)
+	}
+	if len(r.Courses) > 0 {
+		fmt.Print("Courses:\n")
+		for _, c := range r.Courses {
+			fmt.Printf("%s (%s)\n", c.Name, c.Id)
+		}
+	} else {
+		fmt.Print("No courses found.")
+	}
+}
+
 func refreshData(w http.ResponseWriter, r *http.Request) {
 
 	updateClassroom()
@@ -270,6 +293,7 @@ func refreshData(w http.ResponseWriter, r *http.Request) {
 			Section:            c.Section,
 			DescriptionHeading: c.DescriptionHeading,
 			Description:        c.Description,
+			IsDisabled:         c.IsDisabled,
 			// ClassStart:         c.ClassStart,
 			// ClassEnd:           c.ClassEnd,
 			// RegistrationStart:  c.RegistrationStart,
@@ -486,7 +510,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 			DepartmentId:       c.DepartmentId,
 			GoogleClassroomId:  course.Id,
 			Link:               course.AlternateLink,
-			Status:             "REVIEWED",
+			Status:             "PENDING",
 			IsPublic:           false,
 			PassingGrade:       defaultGrade,
 			Capacity:           defaultCapacity,
@@ -494,6 +518,7 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 			Section:            "",
 			DescriptionHeading: "",
 			Description:        "",
+			IsDisabled:         false,
 		}
 		db.Create(&classroom)
 		json.NewEncoder(w).Encode("Successfully stored the new Classroom to database.")
@@ -528,15 +553,15 @@ func createInvitation(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func sendInvitation(id string, user string, role string, srv *classroom.Service) {
+func sendInvitation(course_id string, email string, role string, srv *classroom.Service) {
 	body := &classroom.Invitation{
-		CourseId: id,
+		CourseId: course_id,
 		Role:     role,
-		UserId:   user,
+		UserId:   email,
 	}
 	_, err := srv.Invitations.Create(body).Do()
 	if err != nil {
-		log.Fatalf("Unable to send %s invitation to %s %v", role, user, err)
+		log.Fatalf("Unable to send %s invitation to %s %v", role, email, err)
 	}
 }
 
@@ -569,6 +594,7 @@ func allClassroomsDB(w http.ResponseWriter, r *http.Request) {
 				Section:            c.Section,
 				DescriptionHeading: c.DescriptionHeading,
 				Description:        c.Description,
+				IsDisabled:         c.IsDisabled,
 				Topics:             getTopicFromDB(c.ID),
 			}
 			courses = append(courses, resCourse)
@@ -590,6 +616,7 @@ type AvailableClassroom struct {
 	Section               string          `json:"Section"`
 	DescriptionHeading    string          `json:"DescriptionHeading"`
 	Description           string          `json:"Description"`
+	IsDisabled            bool            `json:"IsDisabled"`
 	CertificateTemplateID string          `json:"CertificateTemplateID"`
 	DepartmentId          string          `json:"DepartmentId"`
 	ActivePeriodID        string          `json:"ActivePeriodID"`
@@ -627,11 +654,11 @@ func allOngoingClassroom(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(availableClassroom)
 }
 
-// get all reviewed classroom
-func allReviewedClassroom(w http.ResponseWriter, r *http.Request) {
+// get all pending classroom
+func allPendingClassroom(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var classroom []Classroom
-	db.Where("status = 'REVIEWED'").Find(&classroom)
+	db.Where("status = 'PENDING'").Find(&classroom)
 	resClassroom := []AvailableClassroom{}
 	copier.Copy(&resClassroom, &classroom)
 	json.NewEncoder(w).Encode(resClassroom)
@@ -678,7 +705,7 @@ func editClass(w http.ResponseWriter, r *http.Request) {
 	db.First(&class, "id = ?", params["id"])
 	json.NewDecoder(r.Body).Decode(&class)
 	db.Save(&class)
-	json.NewEncoder(w).Encode("Successfully edit the class.")
+	json.NewEncoder(w).Encode("Successfully edited the class.")
 }
 
 func removeClass(w http.ResponseWriter, r *http.Request) {

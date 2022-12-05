@@ -24,10 +24,34 @@ func (StudentClassroom) TableName() string {
 	return "student_classroom"
 }
 
+type StudentRegister struct {
+	ID                    string    `json:"ID"`
+	UserID                string    `json:"UserID"`
+	ClassroomPeriodID     string    `json:"ClassroomPeriodID"`
+	Status                string    `json:"Status"`
+	Grade                 float64   `json:"Grade" gorm:"type:numeric(5,2)"`
+	HasCertificate        bool      `json:"HasCertificate"`
+	CertificateIssuedDate time.Time `json:"CertificateIssuedDate"`
+	GoogleClassroomID     string    `json:"GoogleClassroomID"`
+	Email                 string    `json:"Email"`
+}
+
 func addStudentClassroom(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var student_classroom []StudentClassroom
-	json.NewDecoder(r.Body).Decode(&student_classroom)
+	var student_register StudentRegister
+	json.NewDecoder(r.Body).Decode(&student_register)
+	// send invitation to student
+	srv := classroomClient()
+	sendInvitation(student_register.GoogleClassroomID, student_register.Email, "STUDENT", srv)
+	student_classroom := StudentClassroom{
+		ID:                    student_register.ID,
+		UserID:                student_register.UserID,
+		ClassroomPeriodID:     student_register.ClassroomPeriodID,
+		Status:                student_register.Status,
+		Grade:                 student_register.Grade,
+		HasCertificate:        student_register.HasCertificate,
+		CertificateIssuedDate: student_register.CertificateIssuedDate,
+	}
 	db.Create(&student_classroom)
 	json.NewEncoder(w).Encode("Successfully add a student to classroom.")
 }

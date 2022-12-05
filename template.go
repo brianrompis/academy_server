@@ -47,7 +47,7 @@ func editDocumentTemplate(w http.ResponseWriter, r *http.Request) {
 	db.First(&documenttemplate, "id = ?", params["id"])
 	json.NewDecoder(r.Body).Decode(&documenttemplate)
 	db.Save(&documenttemplate)
-	json.NewEncoder(w).Encode("Successfully edit the document template.")
+	json.NewEncoder(w).Encode("Successfully edited the document template.")
 }
 
 func removeDocumentTemplate(w http.ResponseWriter, r *http.Request) {

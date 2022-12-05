@@ -164,7 +164,7 @@ func editQualification(w http.ResponseWriter, r *http.Request) {
 	db.First(&qualification, "id = ?", params["id"])
 	json.NewDecoder(r.Body).Decode(&qualification)
 	db.Save(&qualification)
-	json.NewEncoder(w).Encode("Successfully edit the qualification.")
+	json.NewEncoder(w).Encode("Successfully edited the qualification.")
 }
 
 func removeQualification(w http.ResponseWriter, r *http.Request) {

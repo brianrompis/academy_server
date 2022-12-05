@@ -3,71 +3,39 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
 type Certificate struct {
-	ID          string `json:"ID"`
-	Template    string `json:"Template"`
-	ClassroomID string `json:"ClassroomID"`
-}
-
-func (Certificate) TableName() string {
-	return "certificates"
-}
-
-func allCertificate(w http.ResponseWriter, r *http.Request) {
-	var certificate []Certificate
-	db.Find(&certificate)
-	json.NewEncoder(w).Encode(certificate)
-}
-
-func addCertificate(w http.ResponseWriter, r *http.Request) {
-	var certificate []Certificate
-	json.NewDecoder(r.Body).Decode(&certificate)
-	db.Create(&certificate)
-}
-
-func getCertificate(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	var certificate []Certificate
-	db.First(&certificate, "id = ?", params["id"])
-	json.NewEncoder(w).Encode(certificate)
-}
-
-func editCertificate(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	var certificate []Certificate
-	db.First(&certificate, "id = ?", params["id"])
-	json.NewDecoder(r.Body).Decode(&certificate)
-	db.Save(&certificate)
-	json.NewEncoder(w).Encode("Successfully edit the certificate.")
-}
-
-func removeCertificate(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	var certificate []Certificate
-	db.First(&certificate, "id = ?", params["id"])
-	db.Delete(&certificate)
-	json.NewEncoder(w).Encode("The certificate is deleted successfully!")
+	ClassroomID string    `json:"ClassroomID"`
+	Classroom   string    `json:"Classroom"`
+	TemplateID  string    `json:"TemplateID"`
+	TemplateUrl string    `json:"TemplateUrl"`
+	Grade       float64   `json:"Grade"`
+	IssuedDate  time.Time `json:"IssuedDate"`
+	ExpiredDate time.Time `json:"ExpiredDate"`
+	PeriodStart time.Time `json:"PeriodStart"`
+	PeriodEnd   time.Time `json:"PeriodEnd"`
 }
 
 func getStudentCertificates(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	var certificates []Certificate
-	db.Where("student_id = ?", params["student_id"]).Find(&certificates)
-	json.NewEncoder(w).Encode(certificates)
-}
-
-func removeStudentCertificates(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	var certificates []Certificate
-	db.Where("student_id = ?", params["student_id"]).Delete(&certificates)
-	json.NewEncoder(w).Encode("The entire certificates for the student are deleted successfully!")
+	if err := db.Raw(`select c.id as "classroom_id" , c."name" as "classroom", c.certificate_template_id as "template_id"
+	, dt.url as "template_url"
+	, sc.grade, sc.certificate_issued_date as "issued_date"
+	, cp.cert_expired_date as "expired_date", cp.start_date as "period_start", cp.end_date as "period_end"
+	from student_classroom sc
+	inner join classroom_period cp on sc.classroom_period_id = cp.id 
+	inner join classroom c on cp.classroom_id = c.id 
+	inner join document_template dt on c.certificate_template_id = dt.id 
+	where sc.has_certificate = true
+	and sc.user_id = ?`, params["user_id"]).Scan(&certificates).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode(certificates)
+	}
 }

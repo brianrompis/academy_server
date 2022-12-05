@@ -57,7 +57,7 @@ func editSchedule(w http.ResponseWriter, r *http.Request) {
 	db.First(&schedule, "id = ?", params["id"])
 	json.NewDecoder(r.Body).Decode(&schedule)
 	db.Save(&schedule)
-	json.NewEncoder(w).Encode("Successfully edit the schedule.")
+	json.NewEncoder(w).Encode("Successfully edited the schedule.")
 }
 
 func removeSchedule(w http.ResponseWriter, r *http.Request) {

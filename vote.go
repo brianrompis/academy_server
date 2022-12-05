@@ -170,3 +170,41 @@ func getSuggestedClassroom(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resClassroom)
 	}
 }
+
+type VoteSuggestedList struct {
+	ID                   string `json:"ID"`
+	SuggestedClassroomID string `json:"SuggestedClassroomID"`
+	VoteType             string `json:"VoteType"`
+}
+
+func getUserVoteSuggestedClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var vote_new []VoteNew
+	if err := db.Where("user_id = ?", params["user_id"]).Find(&vote_new).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		voteList := []VoteSuggestedList{}
+		copier.Copy(&voteList, &vote_new)
+		json.NewEncoder(w).Encode(voteList)
+	}
+}
+
+type VoteExistingList struct {
+	ID          string `json:"ID"`
+	ClassroomID string `json:"ClassroomID"`
+	VoteType    string `json:"VoteType"`
+}
+
+func getUserVoteExistingClassroom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var vote_existing []VoteExisting
+	if err := db.Where("user_id = ?", params["user_id"]).Find(&vote_existing).Error; err != nil {
+		json.NewEncoder(w).Encode(err)
+	} else {
+		voteList := []VoteExistingList{}
+		copier.Copy(&voteList, &vote_existing)
+		json.NewEncoder(w).Encode(voteList)
+	}
+}

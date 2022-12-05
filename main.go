@@ -39,8 +39,6 @@ func handleRequests() {
 	myRouter := mux.NewRouter()
 	myRouter.HandleFunc("/", homePage)
 
-	myRouter.HandleFunc("/classroom", createClass).Methods("POST")
-
 	myRouter.HandleFunc("/invitation", createInvitation).Methods("POST")
 
 	myRouter.HandleFunc("/sync", refreshData).Methods("GET")
@@ -55,16 +53,6 @@ func handleRequests() {
 	myRouter.HandleFunc("/schedule/{id}", getSchedule).Methods("GET")
 	myRouter.HandleFunc("/schedule/{id}", editSchedule).Methods("PUT")
 	myRouter.HandleFunc("/schedule/{id}", removeSchedule).Methods("DELETE")
-
-	// list all certificate
-	myRouter.HandleFunc("/certificate", allCertificate).Methods("GET")
-
-	myRouter.HandleFunc("/certificate", addCertificate).Methods("POST")
-	myRouter.HandleFunc("/certificate/{id}", getCertificate).Methods("GET")
-	myRouter.HandleFunc("/certificate/{id}", editCertificate).Methods("PUT")
-	myRouter.HandleFunc("/certificate/{id}", removeCertificate).Methods("DELETE")
-	myRouter.HandleFunc("/certificate/student/{student_id}", getStudentCertificates).Methods("GET")
-	myRouter.HandleFunc("/certificate/student/{student_id}", removeStudentCertificates).Methods("DELETE")
 
 	myRouter.HandleFunc("/employment_history", allEmploymentHistory).Methods("GET")
 	myRouter.HandleFunc("/employment_history", addEmploymentHistory).Methods("POST")
@@ -104,10 +92,12 @@ func handleRequests() {
 	myRouter.HandleFunc("/count_user", countUser).Methods("GET")
 	// get all classroom
 	myRouter.HandleFunc("/classes", allClassroomsDB).Methods("GET")
+	// create new classroom
+	myRouter.HandleFunc("/classroom", createClass).Methods("POST")
 	// get user basic info
 	myRouter.HandleFunc("/user/{id}", getUser).Methods("GET")
-	// get all reviewed classroom
-	myRouter.HandleFunc("/reviewed_class", allReviewedClassroom).Methods("GET")
+	// get all pending classroom
+	myRouter.HandleFunc("/pending_class", allPendingClassroom).Methods("GET")
 	// get all ongoing class
 	myRouter.HandleFunc("/ongoing_class", allOngoingClassroom).Methods("GET")
 	// student register into classroom
@@ -128,6 +118,8 @@ func handleRequests() {
 	myRouter.HandleFunc("/approve_student/{id}", approveStudentToClass).Methods("PUT")
 	// get all classroom from a teacher
 	myRouter.HandleFunc("/teacher/class/{teacher_id}", getTeacherClass).Methods("GET")
+	// get student certificate
+	myRouter.HandleFunc("/certificate/student/{user_id}", getStudentCertificates).Methods("GET")
 	// user's qualification
 	myRouter.HandleFunc("/student/qualification/{user_id}", getStudentQualification).Methods("GET")
 	// add classroom period
@@ -146,10 +138,14 @@ func handleRequests() {
 	myRouter.HandleFunc("/vote/suggested_classroom/{classroom_id}", getSuggestedClassroomVote).Methods("GET")
 	// count suggested classroom vote
 	myRouter.HandleFunc("/vote_count/suggested_classroom/{classroom_id}", countSuggestedClassroomVote).Methods("GET")
+	// get user's vote for suggested classroom
+	myRouter.HandleFunc("/user_vote/suggested_classroom/{user_id}", getUserVoteSuggestedClassroom).Methods("GET")
 	// get existing classroom vote
 	myRouter.HandleFunc("/vote/classroom/{classroom_id}", getClassroomVote).Methods("GET")
 	// count existing classroom vote
 	myRouter.HandleFunc("/vote_count/classroom/{classroom_id}", countClassroomVote).Methods("GET")
+	// get user's vote for existing classroom
+	myRouter.HandleFunc("/user_vote/existing_classroom/{user_id}", getUserVoteExistingClassroom).Methods("GET")
 	// add suggested classroom
 	myRouter.HandleFunc("/suggested_classroom", addSuggestedClassroom).Methods("POST")
 	// get suggested classroom
@@ -169,6 +165,8 @@ func handleRequests() {
 }
 
 func main() {
+
+	// getGoogleClassroomList()
 
 	InitialMigration()
 	fmt.Println("initial migration finished, run handle request")
