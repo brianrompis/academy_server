@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -11,18 +10,6 @@ import (
 
 var db *gorm.DB
 var err error
-
-type Schedule struct {
-	ID        string    `json:"ID"`
-	Name      string    `json:"Name"`
-	StartDate time.Time `json:"StartDate"`
-	EndDate   time.Time `json:"EndDate"`
-}
-
-// TableName overrides the table name used by Schedule to `schedule`
-func (Schedule) TableName() string {
-	return "schedule"
-}
 
 func allSchedule(w http.ResponseWriter, r *http.Request) {
 	var schedule []Schedule

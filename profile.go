@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -11,28 +10,6 @@ import (
 /////////////////////////////////////////
 /////////// Employment History //////////
 /////////////////////////////////////////
-type EmploymentHistory struct {
-	ID                string    `json:"ID"`
-	UserID            string    `json:"UserID"`
-	Position          string    `json:"Position"`
-	CompanyName       string    `json:"CompanyName"`
-	CompanyPublicName string    `json:"CompanyPublicName"`
-	StartDate         time.Time `json:"StartDate"`
-	EndDate           time.Time `json:"EndDate"`
-	City              string    `json:"City"`
-	Country           string    `json:"Country"`
-	Description       string    `json:"Description"`
-	IsArchipelago     bool      `json:"IsArchipelago"`
-	HotelID           string    `json:"HotelID"`
-	ContactName       string    `json:"ContactName"`
-	ContactPosition   string    `json:"ContactPosition"`
-	ContactEmail      string    `json:"ContactEmail"`
-	ContactPhone      string    `json:"ContactPhone"`
-}
-
-func (EmploymentHistory) TableName() string {
-	return "employment_history"
-}
 
 func allEmploymentHistory(w http.ResponseWriter, r *http.Request) {
 	var employment_history []EmploymentHistory
@@ -121,19 +98,6 @@ func editMultipleEmploymentHistory(w http.ResponseWriter, r *http.Request) {
 /////////////////////////////////////////
 /////////// Education History ///////////
 /////////////////////////////////////////
-type EducationHistory struct {
-	ID             string    `json:"ID"`
-	UserID         string    `json:"UserID"`
-	EducationLevel string    `json:"EducationLevel"`
-	SchoolName     string    `json:"SchoolName"`
-	StartYear      time.Time `json:"StartYear"`
-	EndYear        time.Time `json:"EndYear"`
-	GPA            float64   `json:"GPA" gorm:"column:gpa" gorm:"type:numeric(5,2)"`
-}
-
-func (EducationHistory) TableName() string {
-	return "education_history"
-}
 
 func allEducationHistory(w http.ResponseWriter, r *http.Request) {
 	var education []EducationHistory
@@ -194,17 +158,6 @@ func removeUserEducationHistory(w http.ResponseWriter, r *http.Request) {
 /////////////////////////////////////////
 /////////////// Skill ///////////////////
 /////////////////////////////////////////
-type Skill struct {
-	ID          string `json:"ID"`
-	UserID      string `json:"UserID"`
-	Name        string `json:"Name"`
-	Description string `json:"Description"`
-	Level       int    `json:"Level"`
-}
-
-func (Skill) TableName() string {
-	return "skill"
-}
 
 func addSkill(w http.ResponseWriter, r *http.Request) {
 	var skill []Skill

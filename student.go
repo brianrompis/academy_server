@@ -9,25 +9,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type StudentClassroom struct {
-	ID                    string    `json:"ID"`
-	UserID                string    `json:"UserID"`
-	ClassroomPeriodID     string    `json:"ClassroomPeriodID"`
-	Status                string    `json:"Status"`
-	Grade                 float64   `json:"Grade" gorm:"type:numeric(5,2)"`
-	HasCertificate        bool      `json:"HasCertificate"`
-	CertificateIssuedDate time.Time `json:"CertificateIssuedDate"`
-	StudentSubmission     []StudentSubmission
-}
-
-func (StudentClassroom) TableName() string {
-	return "student_classroom"
-}
-
 type StudentRegister struct {
-	ID                    string    `json:"ID"`
-	UserID                string    `json:"UserID"`
-	ClassroomPeriodID     string    `json:"ClassroomPeriodID"`
+	UserID                uint      `json:"UserId"`
+	ClassroomPeriodId     uint      `json:"ClassroomPeriodId"`
 	Status                string    `json:"Status"`
 	Grade                 float64   `json:"Grade" gorm:"type:numeric(5,2)"`
 	HasCertificate        bool      `json:"HasCertificate"`
@@ -44,9 +28,8 @@ func addStudentClassroom(w http.ResponseWriter, r *http.Request) {
 	srv := classroomClient()
 	sendInvitation(student_register.GoogleClassroomID, student_register.Email, "STUDENT", srv)
 	student_classroom := StudentClassroom{
-		ID:                    student_register.ID,
-		UserID:                student_register.UserID,
-		ClassroomPeriodID:     student_register.ClassroomPeriodID,
+		UserId:                student_register.UserID,
+		ClassroomPeriodId:     student_register.ClassroomPeriodId,
 		Status:                student_register.Status,
 		Grade:                 student_register.Grade,
 		HasCertificate:        student_register.HasCertificate,
@@ -54,21 +37,6 @@ func addStudentClassroom(w http.ResponseWriter, r *http.Request) {
 	}
 	db.Create(&student_classroom)
 	json.NewEncoder(w).Encode("Successfully add a student to classroom.")
-}
-
-type StudentSubmission struct {
-	ID                 string    `json:"ID"`
-	StudentClassroomID string    `json:"StudentClassroomID"`
-	AssignmentID       string    `json:"AssignmentID"`
-	DraftGrade         float64   `json:"DraftGrade" gorm:"type:numeric(5,2)"`
-	AssignedGrade      float64   `json:"AssignedGrade" gorm:"type:numeric(5,2)"`
-	LastUpdate         time.Time `json:"LastUpdate"`
-	LastAssignedBy     string    `json:"LastAssignedBy"`
-	GradeAssignHistory []GradeAssignHistory
-}
-
-func (StudentSubmission) TableName() string {
-	return "student_submission"
 }
 
 ////////////////////////////////////

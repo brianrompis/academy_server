@@ -151,6 +151,16 @@ func handleRequests() {
 	// get suggested classroom
 	myRouter.HandleFunc("/suggested_classroom/{classroom_id}", getSuggestedClassroom).Methods("GET")
 
+	// test preload
+	myRouter.HandleFunc("/test_preload", testPreload).Methods("GET")
+
+	// general CRUD endpoints
+	myRouter.HandleFunc("/get_all/{table}", GetAllRecord).Methods("GET")
+	myRouter.HandleFunc("/get_one/{table}/{id}", GetSingleRecord).Methods("GET")
+	myRouter.HandleFunc("/add/{table}", AddRecordHandler).Methods("POST")
+	myRouter.HandleFunc("/update/{table}/{id}", UpdateRecordHandler).Methods("PUT")
+	myRouter.HandleFunc("/delete/{table}/{id}", DeleteRecord).Methods("DELETE")
+
 	// apply middleware
 	var handler http.Handler = myRouter
 	handler = app.Auth(handler)

@@ -7,19 +7,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type DocumentTemplate struct {
-	ID            string          `json:"ID"`
-	Name          string          `json:"Name"`
-	Url           string          `json:"Url"`
-	TemplateType  string          `json:"type"`
-	Classroom     []Classroom     `gorm:"foreignKey:CertificateTemplateID"`
-	Qualification []Qualification `gorm:"foreignKey:CertificateTemplateID"`
-}
-
-func (DocumentTemplate) TableName() string {
-	return "document_template"
-}
-
 func allDocumentTemplate(w http.ResponseWriter, r *http.Request) {
 	var documenttemplate []DocumentTemplate
 	db.Find(&documenttemplate)

@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/copier"
 	"github.com/shopspring/decimal"
@@ -22,65 +21,9 @@ import (
 
 // data from client
 type NewClass struct {
-	ID           string `json:"ID"`
 	Name         string `json:"Name"`
-	DepartmentId string `json:"DepartmentId"`
-	CreatedBy    string `json:"CreatedBy"`
-}
-
-// data stored to DB
-type Classroom struct {
-	ID                     string          `json:"ID" gorm:"column:id"`
-	Name                   string          `json:"Name" gorm:"column:name"`
-	GoogleClassroomId      string          `json:"GoogleClassroomId" gorm:"column:google_classroom_id"`
-	Link                   string          `json:"Link" gorm:"column:link"`
-	Status                 string          `json:"Status" gorm:"column:status"`
-	IsPublic               bool            `json:"IsPublic" gorm:"column:is_public"`
-	PassingGrade           decimal.Decimal `json:"PassingGrade" gorm:"column:passing_grade"`
-	Capacity               int             `json:"Capacity" gorm:"column:capacity"`
-	CreatedBy              string          `json:"CreatedBy" gorm:"column:created_by"`
-	Section                string          `json:"Section" gorm:"column:section"`
-	DescriptionHeading     string          `json:"DescriptionHeading" gorm:"column:description_heading"`
-	Description            string          `json:"Description" gorm:"column:description"`
-	IsDisabled             bool            `json:"IsDisabled" gorm:"column:is_disabled"`
-	CertificateTemplateID  string          `json:"CertificateTemplateID" gorm:"column:certificate_template_id"`
-	DepartmentId           string          `json:"DepartmentId" gorm:"column:department_id"`
-	ActivePeriodID         string          `json:"ActivePeriodID" gorm:"column:active_period_id"`
-	Topic                  []Topic
-	ClassroomPeriod        []ClassroomPeriod
-	Assignment             []Assignment
-	VoteExisting           []VoteExisting
-	TeacherClassroom       []TeacherClassroom
-	QualificationClassroom []QualificationClassroom
-}
-
-func (Classroom) TableName() string {
-	return "classroom"
-}
-
-type Department struct {
-	ID        string `json:"ID" gorm:"column:id"`
-	Name      string `json:"Name" gorm:"column:name"`
-	Classroom []Classroom
-}
-
-func (Department) TableName() string {
-	return "department"
-}
-
-type ClassroomPeriod struct {
-	ID                 string    `json:"ID"`
-	ClassroomID        string    `json:"ClassroomID"`
-	StartDate          time.Time `json:"StartDate"`
-	EndDate            time.Time `json:"EndDate"`
-	CertExpiredDate    time.Time `json:"CertExpiredDate"`
-	RegistrationPeriod []RegistrationPeriod
-	StudentClassroom   []StudentClassroom
-	Classroom          Classroom `gorm:"foreignKey:ActivePeriodID"`
-}
-
-func (ClassroomPeriod) TableName() string {
-	return "classroom_period"
+	DepartmentId uint
+	CreatedBy    uint
 }
 
 // type classPeriodReturn struct {
@@ -98,40 +41,18 @@ func addClassroomPeriod(w http.ResponseWriter, r *http.Request) {
 		values(?, ?, ?, ?, ?)
 		returning id
 	) update classroom set active_period_id = ? where "classroom".id = ?`,
-		classroom_period.ID, classroom_period.ClassroomID, classroom_period.StartDate, classroom_period.EndDate, classroom_period.CertExpiredDate, classroom_period.ID, classroom_period.ClassroomID).Error; err != nil {
+		classroom_period.ID, classroom_period.ClassroomId, classroom_period.StartDate, classroom_period.EndDate, classroom_period.CertExpiredDate, classroom_period.ID, classroom_period.ClassroomId).Error; err != nil {
 		json.NewEncoder(w).Encode(err)
 	} else {
 		json.NewEncoder(w).Encode("Added successfully.")
 	}
 }
 
-type RegistrationPeriod struct {
-	ID                string    `json:"ID"`
-	ClassroomPeriodID string    `json:"ClassroomPeriodID"`
-	StartDate         time.Time `json:"StartDate"`
-	EndDate           time.Time `json:"EndDate"`
-}
-
-func (RegistrationPeriod) TableName() string {
-	return "registration_period"
-}
-
-type Assignment struct {
-	ID                 string    `json:"ID"`
-	ClassroomID        string    `json:"ClassroomID"`
-	GoogleCourseworkID time.Time `json:"GoogleCourseworkID"`
-	StudentSubmission  []StudentSubmission
-}
-
-func (Assignment) TableName() string {
-	return "assignment"
-}
-
 // data from server(here) to display to front end
 type Course struct {
-	Id                 string           `json:"Id"`
-	Name               string           `json:"Name"`
-	DepartmentId       string           `json:"DepartmentId"`
+	Id                 uint
+	Name               string `json:"Name"`
+	DepartmentId       uint
 	GoogleClassroomId  string           `json:"GoogleClassroomId"`
 	AlternateLink      string           `json:"AlternateLink"`
 	Status             string           `json:"Status"`
@@ -150,17 +71,6 @@ type Course struct {
 }
 
 type Courses []Course
-
-type Topic struct {
-	Id            string `json:"Id"`
-	Name          string `json:"Name"`
-	GoogleTopicID string `json:"GoogleTopicID"`
-	ClassroomID   string `json:"ClassroomID"`
-}
-
-func (Topic) TableName() string {
-	return "topic"
-}
 
 type Topics []Topic
 
@@ -363,19 +273,17 @@ func updateClassroom() {
 }
 
 // get list of topics for a couse from Classroom API
-func getTopicList(classroomID string, courseId string, courseName string, srv *classroom.Service) Topics {
+func getTopicList(classroomID uint, courseId string, courseName string, srv *classroom.Service) Topics {
 	res, err2 := srv.Courses.Topics.List(courseId).PageSize(30).Do()
 	if err2 != nil {
 		log.Fatalf("Unable to retrieve topics for classroom: %s", courseName)
 	}
 	var topics Topics
 	for _, t := range res.Topic {
-		topicUniqueID := uuid.New()
 		resTopic := Topic{
-			Id:            topicUniqueID.String(),
-			GoogleTopicID: t.TopicId,
+			GoogleTopicId: t.TopicId,
 			Name:          t.Name,
-			ClassroomID:   classroomID,
+			ClassroomId:   classroomID,
 		}
 		topics = append(topics, resTopic)
 	}
@@ -383,7 +291,7 @@ func getTopicList(classroomID string, courseId string, courseName string, srv *c
 }
 
 // get list of topics(simplified) for a couse from Classroom API and update DB accordingly
-func syncTopics(classroomID string, courseId string, courseName string, srv *classroom.Service) {
+func syncTopics(classroomID uint, courseId string, courseName string, srv *classroom.Service) {
 	//get list of topics from classroom
 	log.Printf("Get the topics data for %s\n", courseName)
 	res, err2 := srv.Courses.Topics.List(courseId).PageSize(30).Do()
@@ -400,7 +308,7 @@ func syncTopics(classroomID string, courseId string, courseName string, srv *cla
 		//map topic in DB
 		var mappedTopic = map[string]Topic{}
 		for _, t := range topicsDB {
-			mappedTopic[t.GoogleTopicID] = t
+			mappedTopic[t.GoogleTopicId] = t
 		}
 
 		//update topic in DB according to Classroom
@@ -410,7 +318,7 @@ func syncTopics(classroomID string, courseId string, courseName string, srv *cla
 				if val.Name != t.Name {
 					// update the topic name in database
 					fmt.Printf("Updating name for topic %s\n", t.Name)
-					db.Model(&Topic{}).Where("id = ?", val.Id).Update("name", t.Name)
+					db.Model(&Topic{}).Where("id = ?", val.ID).Update("name", t.Name)
 				}
 				// remove the matched record in map in order delete the rest from DB
 				delete(mappedTopic, t.TopicId)
@@ -418,10 +326,9 @@ func syncTopics(classroomID string, courseId string, courseName string, srv *cla
 				// add new topic to database
 				fmt.Printf("Add new topic %s\n", t.Name)
 				newTopic := Topic{
-					Id:            uuid.New().String(),
 					Name:          t.Name,
-					GoogleTopicID: t.TopicId,
-					ClassroomID:   classroomID,
+					GoogleTopicId: t.TopicId,
+					ClassroomId:   classroomID,
 				}
 				db.Create(&newTopic)
 			}
@@ -440,13 +347,12 @@ func syncTopics(classroomID string, courseId string, courseName string, srv *cla
 }
 
 // get list of topics(simplified) for a couse from database
-func getTopicFromDB(classroomID string) SimplifiedTopics {
+func getTopicFromDB(classroomID uint) SimplifiedTopics {
 	var topics Topics
 	db.Where("classroom_id = ?", classroomID).Find(&topics)
 	var simplifiedTopics SimplifiedTopics
 	for _, t := range topics {
 		resTopic := SimplifiedTopic{
-			Id:   t.Id,
 			Name: t.Name,
 		}
 		simplifiedTopics = append(simplifiedTopics, resTopic)
@@ -455,17 +361,15 @@ func getTopicFromDB(classroomID string) SimplifiedTopics {
 }
 
 //get specific topic from Classroom API based on id
-func getSpecificTopic(topicID string, classroomID string, c *classroom.Course, srv *classroom.Service) Topic {
+func getSpecificTopic(topicID string, classroomID uint, c *classroom.Course, srv *classroom.Service) Topic {
 	res, err := srv.Courses.Topics.Get(c.Id, topicID).Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve topic with id: %s", topicID)
 	}
-	topicUniqueID := uuid.New()
 	resTopic := Topic{
-		Id:            topicUniqueID.String(),
-		GoogleTopicID: res.TopicId,
+		GoogleTopicId: res.TopicId,
 		Name:          res.Name,
-		ClassroomID:   classroomID,
+		ClassroomId:   classroomID,
 	}
 	return resTopic
 }
@@ -505,7 +409,6 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 		defaultGrade := decimal.NewFromInt(0)
 		defaultCapacity := 500
 		var classroom = Classroom{
-			ID:                 c.ID,
 			Name:               c.Name,
 			DepartmentId:       c.DepartmentId,
 			GoogleClassroomId:  course.Id,

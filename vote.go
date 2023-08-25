@@ -15,41 +15,6 @@ import (
 // 	"github.com/gorilla/mux"
 // )
 
-type VoteNew struct {
-	ID                   string `json:"ID"`
-	UserID               string `json:"UserID"`
-	SuggestedClassroomID string `json:"SuggestedClassroomID"`
-	VoteType             string `json:"VoteType"`
-}
-
-func (VoteNew) TableName() string {
-	return "vote_new"
-}
-
-type VoteExisting struct {
-	ID          string `json:"ID"`
-	UserID      string `json:"UserID"`
-	ClassroomID string `json:"ClassroomID"`
-	VoteType    string `json:"VoteType"`
-}
-
-func (VoteExisting) TableName() string {
-	return "vote_existing"
-}
-
-type SuggestedClassroom struct {
-	ID              string `json:"ID"`
-	Name            string `json:"Name"`
-	Description     string `json:"Description"`
-	UserSuggestedID string `json:"UserSuggestedID"`
-	Status          string `json:"Status"`
-	VoteNew         []VoteNew
-}
-
-func (SuggestedClassroom) TableName() string {
-	return "suggested_classroom"
-}
-
 type UserVoteExisting struct {
 	ID          string `json:"ID"`
 	UserID      string `json:"UserID"`

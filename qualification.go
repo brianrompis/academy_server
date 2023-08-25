@@ -7,29 +7,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Qualification struct {
-	ID                     string `json:"ID"`
-	Name                   string `json:"Name"`
-	Description            string `json:"Description"`
-	CertificateTemplateID  string `json:"CertificateTemplateID"`
-	QualificationClassroom []QualificationClassroom
-	JobQualification       []JobQualification
-}
-
-func (Qualification) TableName() string {
-	return "qualification"
-}
-
-type QualificationClassroom struct {
-	ID              string `json:"ID"`
-	QualificationID string `json:"QualificationID"`
-	ClassroomID     string `json:"ClassroomID"`
-}
-
-func (QualificationClassroom) TableName() string {
-	return "qualification_classroom"
-}
-
 func allQualification(w http.ResponseWriter, r *http.Request) {
 	var qualification []Qualification
 	db.Find(&qualification)
