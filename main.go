@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"crypto/sha256"
 	"crypto/subtle"
@@ -27,8 +26,8 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	app := new(application)
 
-	app.auth.username = os.Getenv("AUTH_USERNAME")
-	app.auth.password = os.Getenv("AUTH_PASSWORD")
+	app.auth.username = GoDotEnvVariable("SERVER_UNAME")
+	app.auth.password = GoDotEnvVariable("SERVER_PASS")
 	if app.auth.username == "" {
 		log.Fatal("Basic auth username must be provided")
 	}
@@ -160,6 +159,27 @@ func handleRequests() {
 	myRouter.HandleFunc("/add/{table}", AddRecordHandler).Methods("POST")
 	myRouter.HandleFunc("/update/{table}/{id}", UpdateRecordHandler).Methods("PUT")
 	myRouter.HandleFunc("/delete/{table}/{id}", DeleteRecord).Methods("DELETE")
+
+	//////////////////////////////
+	// specific purpose endpoints
+	//////////////////////////////
+	// get trending course list
+
+	// sugeested qualification,
+
+	// total courses
+
+	// total teachers
+
+	// total students
+
+	// number fo user's course taken
+
+	// number of user average hours
+
+	// number of user total hours
+
+	// next course
 
 	// apply middleware
 	var handler http.Handler = myRouter

@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/shopspring/decimal"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -50,8 +53,9 @@ func (Classroom) TableName() string {
 
 type Department struct {
 	gorm.Model
-	Name      string `json:"Name" gorm:"column:name"`
-	Classroom []Classroom
+	Name      string
+	Classroom []Classroom `gorm:"foreignKey:DepartmentId"`
+	Job       []Job       `gorm:"foreignKey:DepartmentId"`
 }
 
 func (Department) TableName() string {
@@ -86,7 +90,7 @@ func (RegistrationPeriod) TableName() string {
 type Assignment struct {
 	gorm.Model
 	ClassroomId        uint `gorm:"not null"`
-	GoogleCourseworkId time.Time
+	GoogleCourseworkId string
 	StudentSubmission  []StudentSubmission `gorm:"foreignKey:AssignmentId"`
 }
 
@@ -337,7 +341,7 @@ type Job struct {
 	gorm.Model
 	Name             string
 	Level            string
-	Department       string
+	DepartmentId     uint               `gorm:"default:null"`
 	JobQualification []JobQualification `gorm:"foreignKey:JobId"`
 	JobVacancy       []JobVacancy       `gorm:"foreignKey:JobId"`
 	OpenCandidate    []OpenCandidate    `gorm:"foreignKey:JobId"`
@@ -369,8 +373,8 @@ type JobVacancy struct {
 	Salary            int
 	Status            string
 	Type              string
-	CandidateSelected string
-	UserApplication   []UserApplication
+	CandidateSelected uint              `gorm:"default:null"`
+	UserApplication   []UserApplication `gorm:"foreignKey:JobVacancyId"`
 }
 
 func (JobVacancy) TableName() string {
@@ -496,17 +500,54 @@ func (ClassroomCourseTag) TableName() string {
 	return "classroom_course_tag"
 }
 
-//////////////////////////////////////////////
-/// MODEL MIGRATION
-//////////////////////////////////////////////
-func InitialMigration() {
-	// dsn := "brian:1q2w3e4r!Q@W#E$R@tcp(127.0.0.1:3306)/classroom?charset=utf8mb4&parseTime=True&loc=Local"
-	dsn := "host=localhost user=brian password=!Q@W#E$R1q2w3e4r dbname=classroom port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+// ////////////////////////////////////////////
+// / MODEL MIGRATION
+// ////////////////////////////////////////////
+var db *gorm.DB
+var err error
+
+func GoDotEnvVariable(key string) string {
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "local"
+	}
+	fmt.Printf("Env: %s \n", env)
+	if env == "production" {
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatalf("Error loading .env file")
+		}
+	} else {
+		err := godotenv.Load(".env." + env)
+		if err != nil {
+			log.Fatalf("Error loading .env file")
+		}
+	}
+	return os.Getenv(key)
+}
+
+func EstablishConnection() {
+	db_host := GoDotEnvVariable("DB_HOST")
+	db_user := GoDotEnvVariable("DB_UNAME")
+	db_pass := GoDotEnvVariable("DB_PASS")
+	dsn := "host=" + db_host + " user=" + db_user + " password=" + db_pass + " dbname=classroom port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		// Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		fmt.Println(err.Error())
 		panic("Faild to connect to database")
 	}
+}
+
+func InitialMigration() {
+	EstablishConnection()
+	// dsn := "host=localhost user=brian password=!Q@W#E$R1q2w3e4r dbname=classroom port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	// db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// 	panic("Faild to connect to database")
+	// }
 
 	// db.Migrator().CreateTable(&Classroom{})
 	db.AutoMigrate(&Classroom{})

@@ -5,11 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"gorm.io/gorm"
 )
-
-var db *gorm.DB
-var err error
 
 func allSchedule(w http.ResponseWriter, r *http.Request) {
 	var schedule []Schedule

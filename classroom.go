@@ -215,7 +215,7 @@ func refreshData(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&courses)
 }
 
-//update classroom data from Classroom API to database
+// update classroom data from Classroom API to database
 func updateClassroom() {
 	srv := classroomClient()
 
@@ -360,7 +360,7 @@ func getTopicFromDB(classroomID uint) SimplifiedTopics {
 	return simplifiedTopics
 }
 
-//get specific topic from Classroom API based on id
+// get specific topic from Classroom API based on id
 func getSpecificTopic(topicID string, classroomID uint, c *classroom.Course, srv *classroom.Service) Topic {
 	res, err := srv.Courses.Topics.Get(c.Id, topicID).Do()
 	if err != nil {

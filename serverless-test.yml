@@ -1,0 +1,18 @@
+service: arch-academy-lambda
+frameworkVersion: '>1.28.0'
+provider:
+  name: aws
+  runtime: go1.x
+  region: ap-southeast-3
+  stage: prod
+function:
+  api:
+    handler: bin/main
+    events:
+      - http:
+          path: /get_all/classroom
+          method: GET
+package:
+  patterns:
+    - '!*/'
+    - bin/main
